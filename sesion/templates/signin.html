@@ -1,0 +1,21 @@
+{% extends 'layouts/base.html' %}
+{% block content %}
+{% load crispy_forms_tags %}
+
+<h1 class="text-center py-3">Iniciar sesión</h1>
+<form action="" id="signup2-form" method="POST">
+    {% csrf_token %}
+    <div class="card mx-auto" style="width: 24rem;">
+        <div class="card-body">
+            <h5 class="card-title">Complete su registro</h5>
+            {{ form | crispy }}
+            <a href={% url 'index' %} class="card-link">Inicio</a>
+            <!-- aqui va signup -->
+            <button class="btn btn-sm btn-primary float-end" type="submit">Iniciar Sesión</button>
+        </div>
+    </div>
+</form>
+
+{% endblock %}
+
+<a href={% url 'signup' %} class="card-link">Registrarse</a>
