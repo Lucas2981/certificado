@@ -1,7 +1,7 @@
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from django.contrib import admin
-from .models import Location,Clases,Instituciones,Titulos,Inspectores,Obras
+from .models import Location,Clases,Instituciones,Titulos,Inspectores,Obras,Rubros,Subrubros,Presupuestos,PresupuestosSubrubros,Ofertas
 
 # Register your models here.
 class LocalidadAdmin(ImportExportModelAdmin):
@@ -48,8 +48,43 @@ class InspectoresAdmin(admin.ModelAdmin):
 admin.site.register(Inspectores,InspectoresAdmin)
 
 class ObrasAdmin(admin.ModelAdmin):
-    list_display = ('institucion','inicio','plazo','vencimiento_contractual','ampliacion_1','vencimiento_ampliacion_1','ampliacion_2','vencimiento_ampliacion_2')
+    list_display = ('institucion','inspector','inicio','plazo','vencimiento_contractual')
     search_fields = ('institucion','inspector')
     list_filter = ('institucion','inspector')
     ordering = ['institucion']
 admin.site.register(Obras,ObrasAdmin)
+
+class RubrosAdmin(admin.ModelAdmin):
+    list_display = ('name','id')
+    search_fields = ('name',)
+    ordering = ['name']
+admin.site.register(Rubros,RubrosAdmin)
+
+class SubrubrosAdmin(admin.ModelAdmin):
+    list_display = ('name','rubro')
+    search_fields = ('rubro','name')
+    ordering = ['rubro','name']
+admin.site.register(Subrubros,SubrubrosAdmin)
+
+class PresupuestoSubrubroInline(admin.TabularInline):
+    model = PresupuestosSubrubros
+    extra = 0
+    autocomplete_fields = ['subrubro']
+
+class PresupuestosAdmin(admin.ModelAdmin):
+    inlines = [PresupuestoSubrubroInline]
+    def inspector(self, obj):
+        return obj.obra.inspector  
+    inspector.short_description = 'Inspector' 
+    list_display = ('obra','inspector','fecha','uvi')
+    search_fields = ('obra','rubro','subrubro','presupuesto','presupuesto_subrubro')
+    list_filter = ('obra','subrubro')
+    ordering = ['obra','fecha']
+admin.site.register(Presupuestos,PresupuestosAdmin)
+
+class OfertasAdmin(admin.ModelAdmin):
+    list_display = ('presupuesto','fecha','uvi')
+    search_fields = ('presupuesto',)
+    ordering = ['presupuesto']
+admin.site.register(Ofertas,OfertasAdmin)
+
