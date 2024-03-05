@@ -1,7 +1,7 @@
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from django.contrib import admin
-from .models import Location,Clases,Instituciones,Titulos,Inspectores,Obras,Rubros,Subrubros,Presupuestos,PresupuestosSubrubros,Ofertas
+from .models import Location,Clases,Instituciones,Titulos,Inspectores,Obras,Rubros,Subrubros,Presupuestos,PresupuestosSubrubros,Ofertas,Uvis
 
 # Register your models here.
 class LocalidadAdmin(ImportExportModelAdmin):
@@ -76,6 +76,7 @@ class PresupuestosAdmin(admin.ModelAdmin):
     def inspector(self, obj):
         return obj.obra.inspector  
     inspector.short_description = 'Inspector' 
+        
     list_display = ('obra','inspector','fecha','uvi')
     search_fields = ('obra','rubro','subrubro','presupuesto','presupuesto_subrubro')
     list_filter = ('obra','subrubro')
@@ -87,4 +88,10 @@ class OfertasAdmin(admin.ModelAdmin):
     search_fields = ('presupuesto',)
     ordering = ['presupuesto']
 admin.site.register(Ofertas,OfertasAdmin)
+
+class UvisAdmin(admin.ModelAdmin):
+    list_display = ('fecha','valor')
+    search_fields = ('fecha','valor')
+    ordering = ['fecha']
+admin.site.register(Uvis,UvisAdmin)
 

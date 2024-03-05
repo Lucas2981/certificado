@@ -1,6 +1,9 @@
 from django.db import models
+from django.db.models import Sum
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
+import requests
+import pandas as pd
 
 class Location(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
@@ -70,17 +73,45 @@ class Inspectores(models.Model):
     def __str__(self):
         return f'{self.titulo.abreviation} {self.surname.upper()}, {self.name}'
 
+token = "BEARER eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzUyNjIxODUsInR5cGUiOiJleHRlcm5hbCIsInVzZXIiOiJsdWNhczI5ODExM0BnbWFpbC5jb20ifQ.etGSopywcbHA3SABLjF2za-4rzVDBCaEDln0CfAQMIpEcdTqkWsLhaGvrdNv6RAcwGHuUCYYkYrpPEXjE41-2w"
+web = "https://api.estadisticasbcra.com/"
+headers = {"Authorization": token}
 class Uvis(models.Model):
-    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    # id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
     fecha = models.DateField(verbose_name='Fecha',blank=True, null=True)
     valor = models.FloatField(verbose_name='Valor',blank=True, null=True)
     class Meta:
         verbose_name = 'Uvi'
         verbose_name_plural = 'Uvis'
         ordering = ['fecha']
-    def __str__(self):
-        return self.fecha
 
+def UVI_BD(user_id,token):
+    #endopint al que se llama (Ver listado de endpoins)
+    endpoint = "uvi"
+    #datos para el llamado
+    url = f'{web}{endpoint}'
+    #Llamado
+    data_json = requests.get(url, headers=headers).json()
+    #Armamos una tabla con los datos
+    df = pd.DataFrame(data_json)
+    df = df[df['d']>='2022-01-01']
+    data_dict = df.to_dict(orient='records')
+    # Actualizar la tabla Uvis
+    for registro in data_dict:
+        fecha = registro['d']
+        valor = registro['v']
+        # Buscar si el registro ya existe
+        try:
+            uvi_obj = Uvis.objects.get(fecha=fecha)
+        except Uvis.DoesNotExist:
+            # Crear un nuevo registro
+            uvi_obj = Uvis(fecha=fecha, valor=valor)
+        else:
+            # Actualizar el valor del registro existente
+            uvi_obj.valor = valor
+        uvi_obj.save()
+
+# UVI_BD('user_id','token')
 class Obras(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
     institucion = models.ForeignKey(Instituciones, on_delete=models.CASCADE, verbose_name='Institución')
@@ -156,18 +187,36 @@ class PresupuestosSubrubros(models.Model):
     subrubro = models.ForeignKey(Subrubros, on_delete=models.CASCADE, verbose_name='Subrubro', blank=True, null=True)
     unidad = models.CharField(max_length=10, verbose_name='Unidad', blank=True, null=True)
     cantidad = models.FloatField(verbose_name='Cantidad',blank=True, null=True)
+    
     precio_unitario_presupuesto = models.FloatField(verbose_name='Precio Unitario', blank=True, null=True)
+    # calculos auxiliares Presupuesto
+    precio_total_presupuesto = models.FloatField(verbose_name='Precio Total', blank=True, null=True)
+    incidencias_presupuesto = models.FloatField(verbose_name='Incidencias', blank=True, null=True)
+    
     precio_unitario_oferta = models.FloatField(verbose_name='Precio Unitario', editable=False, blank=True, null=True)
-    precio_total_presupuesto = models.FloatField(verbose_name='Precio Total', editable=False, blank=True, null=True)
-    precio_total_oferta = models.FloatField(verbose_name='Precio Total', editable=False, blank=True, null=True)
-    precio_rubro_presupuesto = models.FloatField(verbose_name='Precio Rubro', editable=False,blank=True, null=True)
-    precio_rubro_oferta = models.FloatField(verbose_name='Precio Rubro', editable=False,blank=True, null=True)
-    incidencias_presupuesto = models.FloatField(verbose_name='Incidencias', editable=False,blank=True, null=True)
+    # calculos auxiliares Oferta
+    precio_total_oferta = models.FloatField(verbose_name='Precio Total', blank=True, null=True)
     incidencias_oferta = models.FloatField(verbose_name='Incidencias', editable=False,blank=True, null=True)
+    uvi_oferta = models.ForeignKey(Uvis, on_delete=models.CASCADE, verbose_name='Uvi', editable=False, blank=True, null=True)
     class Meta:
         verbose_name = 'Presupuesto'
         verbose_name_plural = 'Presupuestos'
         ordering = ['presupuesto']
+    def save(self, *args, **kwargs):
+        if self.precio_unitario_presupuesto:
+            self.precio_total_presupuesto = self.cantidad * self.precio_unitario_presupuesto
+        if self.precio_unitario_oferta:
+            self.precio_total_oferta = self.cantidad*self.precio_unitario_oferta
+        super().save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        # Calculate and assign incidencia_presupuesto
+        if PresupuestosSubrubros.objects.exists():  # Check if any objects exist
+            total_presupuesto = PresupuestosSubrubros.objects.aggregate(Sum('precio_total_presupuesto'))['precio_total_presupuesto__sum']
+            if total_presupuesto:  # Avoid division by zero
+                self.incidencias_presupuesto = self.precio_total_presupuesto / total_presupuesto
+        else:
+            self.incidencias_presupuesto = None  # Set to None if no objects exist
+        super().save(*args, **kwargs)
 
 class Ofertas(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
@@ -180,3 +229,7 @@ class Ofertas(models.Model):
         ordering = ['presupuesto']
     def __str__(self):
         return f'{self.presupuesto.obra.institucion.name} - {self.presupuesto.obra.inspector}'
+
+# class PlanTrabajo(models.Model):
+#     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+#     presupuesto = models.ForeignKey(Presupuestos, on_delete=models.CASCADE, verbose_name='Presupuesto')
