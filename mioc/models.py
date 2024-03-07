@@ -66,12 +66,18 @@ class Inspectores(models.Model):
     dni = models.CharField(max_length=8, verbose_name='DNI')
     telephone = models.CharField(max_length=50, verbose_name='Teléfono')
     mail = models.EmailField(verbose_name='Correo')
+    fullname = models.CharField(max_length=200,editable=False ,blank=True, null=True, verbose_name='Inspector')
     class Meta:
         verbose_name = 'Inspector'
         verbose_name_plural = 'Inspectores'
         ordering = ['name']
+    def save(self, *args, **kwargs):
+        # Calcular la fecha de entrega
+        self.fullname = f'{self.titulo.abreviation} {self.surname.upper()}, {self.name}'
+        super().save(*args, **kwargs)    
     def __str__(self):
-        return f'{self.titulo.abreviation} {self.surname.upper()}, {self.name}'
+        return self.fullname
+
 
 token = "BEARER eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MzUyNjIxODUsInR5cGUiOiJleHRlcm5hbCIsInVzZXIiOiJsdWNhczI5ODExM0BnbWFpbC5jb20ifQ.etGSopywcbHA3SABLjF2za-4rzVDBCaEDln0CfAQMIpEcdTqkWsLhaGvrdNv6RAcwGHuUCYYkYrpPEXjE41-2w"
 web = "https://api.estadisticasbcra.com/"
@@ -149,10 +155,21 @@ class Rubros(models.Model):
     def __str__(self):
         return self.name
 
+class Unidades(models.Model):
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    name = models.CharField(max_length=200, verbose_name='Unidad')
+    class Meta:
+        verbose_name = 'Unidad'
+        verbose_name_plural = 'Unidades'
+        ordering = ['name']
+    def __str__(self):
+        return self.name
+
 class Subrubros(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
     name = models.CharField(max_length=200, verbose_name='Subrubro')
     rubro = models.ForeignKey(Rubros, on_delete=models.CASCADE, verbose_name='Rubro')
+    unidad = models.ForeignKey(Unidades, on_delete=models.CASCADE, verbose_name='Unidad', blank=True, null=True)
     class Meta:
         verbose_name = 'Subrubro'
         verbose_name_plural = 'Subrubros'
@@ -165,6 +182,7 @@ class Presupuestos(models.Model):
     obra = models.ForeignKey(Obras, on_delete=models.CASCADE, verbose_name='Obra')
     fecha = models.DateField(verbose_name='Fecha',null=True)
     uvi = models.ForeignKey(Uvis, on_delete=models.CASCADE, verbose_name='Uvi', editable=False, blank=True, null=True)
+    codPresupuesto = models.CharField(max_length=200, verbose_name='Cod. Presupuesto', editable=False, blank=True, null=True)
     subrubro = models.ManyToManyField(Subrubros, 
         through='PresupuestosSubrubros',
         blank=True, 
@@ -173,8 +191,11 @@ class Presupuestos(models.Model):
         verbose_name = 'Presupuesto'
         verbose_name_plural = 'Presupuestos'
         ordering = ['obra']
+    def save(self, *args, **kwargs):
+        self.codPresupuesto = f'{str(self.id).zfill(4)}{str(self.obra.inspector.surname)[:4].upper()}{str(self.obra.institucion.name)[:4].upper()} '
+        super().save(*args, **kwargs)
     def __str__(self):
-        return f'{self.obra.institucion.name} - {self.obra.inspector}'
+        return f'{self.codPresupuesto} - {self.obra.institucion.name} - {self.obra.inspector}'
     
 class PresupuestosSubrubros(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
@@ -185,7 +206,7 @@ class PresupuestosSubrubros(models.Model):
     presupuesto = models.ForeignKey(Presupuestos, on_delete=models.CASCADE, verbose_name='Presupuesto',blank=True, null=True)
     rubro = models.ForeignKey(Rubros, on_delete=models.CASCADE, verbose_name='Rubro', blank=True, null=True)
     subrubro = models.ForeignKey(Subrubros, on_delete=models.CASCADE, verbose_name='Subrubro', blank=True, null=True)
-    unidad = models.CharField(max_length=10, verbose_name='Unidad', blank=True, null=True)
+    unidad = models.ForeignKey(Unidades, on_delete=models.CASCADE, verbose_name='Unidad', blank=True, null=True)
     cantidad = models.FloatField(verbose_name='Cantidad',blank=True, null=True)
     
     precio_unitario_presupuesto = models.FloatField(verbose_name='Precio Unitario', blank=True, null=True)
@@ -193,29 +214,57 @@ class PresupuestosSubrubros(models.Model):
     precio_total_presupuesto = models.FloatField(verbose_name='Precio Total', blank=True, null=True)
     incidencias_presupuesto = models.FloatField(verbose_name='Incidencias', blank=True, null=True)
     
-    precio_unitario_oferta = models.FloatField(verbose_name='Precio Unitario', editable=False, blank=True, null=True)
+    precio_unitario_oferta = models.FloatField(verbose_name='Precio Unitario', blank=True, null=True)
     # calculos auxiliares Oferta
     precio_total_oferta = models.FloatField(verbose_name='Precio Total', blank=True, null=True)
-    incidencias_oferta = models.FloatField(verbose_name='Incidencias', editable=False,blank=True, null=True)
+    incidencias_oferta = models.FloatField(verbose_name='Incidencias',blank=True, null=True)
     uvi_oferta = models.ForeignKey(Uvis, on_delete=models.CASCADE, verbose_name='Uvi', editable=False, blank=True, null=True)
     class Meta:
         verbose_name = 'Presupuesto'
         verbose_name_plural = 'Presupuestos'
         ordering = ['presupuesto']
-    def save(self, *args, **kwargs):
+    def calculate_presupuesto(self):
         if self.precio_unitario_presupuesto:
             self.precio_total_presupuesto = self.cantidad * self.precio_unitario_presupuesto
+    def calculate_oferta(self):
         if self.precio_unitario_oferta:
-            self.precio_total_oferta = self.cantidad*self.precio_unitario_oferta
-        super().save(*args, **kwargs)
-    def save(self, *args, **kwargs):
-        # Calculate and assign incidencia_presupuesto
-        if PresupuestosSubrubros.objects.exists():  # Check if any objects exist
+            self.precio_total_oferta = self.cantidad * self.precio_unitario_oferta
+
+    def calculate_incidence_presupuesto(self):
+        if PresupuestosSubrubros.objects.exists():
             total_presupuesto = PresupuestosSubrubros.objects.aggregate(Sum('precio_total_presupuesto'))['precio_total_presupuesto__sum']
-            if total_presupuesto:  # Avoid division by zero
-                self.incidencias_presupuesto = self.precio_total_presupuesto / total_presupuesto
+            if total_presupuesto:
+                self.incidencias_presupuesto = round(self.precio_total_presupuesto / total_presupuesto, 2)
+            else:
+                self.incidencias_presupuesto = None
         else:
             self.incidencias_presupuesto = None  # Set to None if no objects exist
+    def calculate_incidence_oferta(self):
+        if PresupuestosSubrubros.objects.exists():
+            total_oferta = PresupuestosSubrubros.objects.aggregate(Sum('precio_total_oferta'))['precio_total_oferta__sum']
+            if total_oferta:
+                self.incidencias_oferta = round(self.precio_total_oferta / total_oferta, 2)
+            else:
+                self.incidencias_oferta = None
+        else:
+            self.incidencias_oferta = None  # Set to None if no objects exist
+    def save(self, *args, **kwargs):
+        while PresupuestosSubrubros.objects.filter(presupuesto=self.presupuesto).exists():
+            self.calculate_presupuesto()  # Call the price calculation function
+            super().save(*args, **kwargs)
+            break
+        while PresupuestosSubrubros.objects.filter(presupuesto=self.presupuesto).exists():
+            self.calculate_oferta()  # Call the price calculation function
+            super().save(*args, **kwargs)
+            break
+        while PresupuestosSubrubros.objects.filter(presupuesto=self.presupuesto).exists():
+            self.calculate_incidence_presupuesto()  # Call the incidence calculation function
+            super().save(*args, **kwargs)
+            break
+        while PresupuestosSubrubros.objects.filter(presupuesto=self.presupuesto).exists():
+            self.calculate_incidence_oferta()  # Call the incidence calculation function
+            super().save(*args, **kwargs)
+            break
         super().save(*args, **kwargs)
 
 class Ofertas(models.Model):
@@ -228,7 +277,7 @@ class Ofertas(models.Model):
         verbose_name_plural = 'Ofertas'
         ordering = ['presupuesto']
     def __str__(self):
-        return f'{self.presupuesto.obra.institucion.name} - {self.presupuesto.obra.inspector}'
+        return self.presupuesto.codPresupuesto
 
 # class PlanTrabajo(models.Model):
 #     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
