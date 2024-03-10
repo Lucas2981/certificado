@@ -1,7 +1,8 @@
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from django.contrib import admin
-from .models import Location,Clases,Instituciones,Titulos,Inspectores,Obras,Rubros,Subrubros,Presupuestos,PresupuestosSubrubros,Ofertas,Uvis,Unidades
+from .models import (Location,Clases,Instituciones,Titulos,Inspectores,Obras,Rubros,
+                    Subrubros,Presupuestos,PresupuestosSubrubros,Uvis,Unidades)
 
 # Register your models here.
 class LocalidadAdmin(ImportExportModelAdmin):
@@ -48,7 +49,7 @@ class InspectoresAdmin(admin.ModelAdmin):
 admin.site.register(Inspectores,InspectoresAdmin)
 
 class ObrasAdmin(admin.ModelAdmin):
-    list_display = ('institucion','inspector','inicio','plazo','vencimiento_contractual')
+    list_display = ('codObra','institucion','inspector','inicio','plazo','vencimiento_contractual','uvi')
     search_fields = ('institucion','inspector')
     list_filter = ('institucion__name','inspector__fullname')
     ordering = ['institucion']
@@ -61,7 +62,7 @@ class RubrosAdmin(admin.ModelAdmin):
 admin.site.register(Rubros,RubrosAdmin)
 
 class SubrubrosAdmin(admin.ModelAdmin):
-    list_display = ('name','rubro')
+    list_display = ('id','name','rubro')
     search_fields = ('name',)
     list_filter = ('rubro__name',)
     ordering = ['rubro','name']
@@ -76,20 +77,18 @@ class PresupuestosAdmin(admin.ModelAdmin):
     inlines = [PresupuestoSubrubroInline]
     def inspector(self, obj):
         return obj.obra.inspector  
-    inspector.short_description = 'Inspector' 
-    list_display = ('codPresupuesto','obra','inspector','fecha','uvi')
+    inspector.short_description = 'Inspector'
+    def codObra(self, obj):
+        return obj.obra.codObra
+    codObra.short_description = 'Cod. Obra'
+    list_display = ('id','codObra','obra','inspector','uvi')
     search_fields = ('obra','rubro','subrubro','presupuesto','presupuesto_subrubro')
-    list_filter = ('fecha','obra__institucion__name','obra__inspector__fullname')
-    ordering = ['obra','fecha']
+    list_filter = ('obra__institucion__name','obra__inspector__fullname')
+    ordering = ['obra',]
+    list_display_links = ['codObra','id','inspector']
     # def get_readonly_fields(self, request, obj=None):
     #     return ['subrubro']
 admin.site.register(Presupuestos,PresupuestosAdmin)
-
-class OfertasAdmin(admin.ModelAdmin):
-    list_display = ('presupuesto','fecha','uvi')
-    search_fields = ('presupuesto',)
-    ordering = ['presupuesto']
-admin.site.register(Ofertas,OfertasAdmin)
 
 class UvisAdmin(admin.ModelAdmin):
     list_display = ('fecha','valor')
@@ -98,7 +97,7 @@ class UvisAdmin(admin.ModelAdmin):
 admin.site.register(Uvis,UvisAdmin)
 
 class UnidadesAdmin(admin.ModelAdmin):
-    list_display = ('name',)
+    list_display = ('id','name',)
     search_fields = ('name',)
     ordering = ['name']
 admin.site.register(Unidades,UnidadesAdmin)
