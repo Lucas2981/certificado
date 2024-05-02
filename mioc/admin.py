@@ -1,7 +1,7 @@
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from django.contrib import admin
-from .models import (Location,Clases,Instituciones,Titulos,Inspectores,Obras,Rubros,
+from .models import (Empresas, Estados, Location,Clases,Instituciones,Titulos,Inspectores,Obras,Rubros,
                     Subrubros,Presupuestos,PresupuestosSubrubros,Uvis,Unidades)
 
 # Register your models here.
@@ -23,6 +23,12 @@ class ClasesAdmin(admin.ModelAdmin):
     ordering = ['name']
 admin.site.register(Clases,ClasesAdmin)
 
+class EstadosAdmin(admin.ModelAdmin):
+    list_display = ('name',)
+    search_fields = ('name',)
+    ordering = ['name']
+admin.site.register(Estados,EstadosAdmin)
+
 class InstitucionesAdmin(ImportExportModelAdmin):
     list_display = ('name','clase','location')
     search_fields = ('name', 'clase', 'location')
@@ -42,11 +48,18 @@ class TitulosAdmin(admin.ModelAdmin):
 admin.site.register(Titulos,TitulosAdmin)
 
 class InspectoresAdmin(admin.ModelAdmin):
-    list_display = ('fullname','dni','telephone','mail')
-    search_fields = ('titulo','name','surname','dni','telephone','mail')
+    list_display = ('fullname','dni','telephone','email')
+    search_fields = ('titulo','name','surname','dni','telephone','email')
     list_filter = ('titulo__name', 'fullname')
     ordering = ['surname']
 admin.site.register(Inspectores,InspectoresAdmin)
+
+class EmpresaAdmin(admin.ModelAdmin):
+    list_display = ('name','propietario','location','telephone','email')
+    search_fields = ('name',)
+    ordering = ['name']
+    raw_id_fields = ['location']
+admin.site.register(Empresas,EmpresaAdmin)
 
 class ObrasAdmin(admin.ModelAdmin):
     list_display = ('codObra','institucion','inspector','inicio','plazo','vencimiento_contractual','uvi')

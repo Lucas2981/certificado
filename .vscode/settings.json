@@ -1,22 +1,23 @@
 {
     "workbench.colorCustomizations": {
-        "activityBar.activeBackground": "#e2515d",
-        "activityBar.background": "#e2515d",
-        "activityBar.foreground": "#e7e7e7",
-        "activityBar.inactiveForeground": "#e7e7e799",
-        "activityBarBadge.background": "#34db24",
+        "activityBar.activeBackground": "#f4f8fa",
+        "activityBar.background": "#f4f8fa",
+        "activityBar.foreground": "#15202b",
+        "activityBar.inactiveForeground": "#15202b99",
+        "activityBarBadge.background": "#cd91b9",
         "activityBarBadge.foreground": "#15202b",
-        "commandCenter.border": "#e7e7e799",
-        "sash.hoverBorder": "#e2515d",
-        "statusBar.background": "#db2534",
-        "statusBar.foreground": "#e7e7e7",
-        "statusBarItem.hoverBackground": "#e2515d",
-        "statusBarItem.remoteBackground": "#db2534",
-        "statusBarItem.remoteForeground": "#e7e7e7",
-        "titleBar.activeBackground": "#db2534",
-        "titleBar.activeForeground": "#e7e7e7",
-        "titleBar.inactiveBackground": "#db253499",
-        "titleBar.inactiveForeground": "#e7e7e799"
+        "commandCenter.border": "#15202b99",
+        "sash.hoverBorder": "#f4f8fa",
+        "statusBar.background": "#d0e0eb",
+        "statusBar.foreground": "#15202b",
+        "statusBarItem.hoverBackground": "#acc8dc",
+        "statusBarItem.remoteBackground": "#d0e0eb",
+        "statusBarItem.remoteForeground": "#15202b",
+        "titleBar.activeBackground": "#d0e0eb",
+        "titleBar.activeForeground": "#15202b",
+        "titleBar.inactiveBackground": "#d0e0eb99",
+        "titleBar.inactiveForeground": "#15202b99"
     },
-    "peacock.color": "#DB2534"
+    "peacock.color": "#d0e0eb",
+    "CodeGPT.apiKey": "CodeGPT Plus Beta"
 }

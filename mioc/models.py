@@ -44,6 +44,18 @@ class Clases(models.Model):
         ordering = ['name']
 
     def __str__(self):
+        return f'{self.name} - {self.subname}'
+
+class Estados(models.Model):
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    name = models.CharField(max_length=200, verbose_name='Estado')
+
+    class Meta:
+        verbose_name = 'Estado'
+        verbose_name_plural = 'Estados'
+        ordering = ['name']
+
+    def __str__(self):
         return self.name
 
 class Instituciones(models.Model):
@@ -74,6 +86,24 @@ class Titulos(models.Model):
     def __str__(self):
         return self.abreviation
 
+class Empresas(models.Model):
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    name = models.CharField(max_length=200, verbose_name='Nombres')
+    propietario = models.CharField(max_length=200, verbose_name='Propietario', blank=True, null=True)
+    representante_tecnico = models.CharField(max_length=200, verbose_name='Representante Técnico', blank=True, null=True)
+    location = models.ForeignKey(Location, on_delete=models.CASCADE, verbose_name='Ubicación', blank=True, null=True)
+    calle = models.CharField(max_length=200, verbose_name='Calle', blank=True, null=True)
+    telephone = models.CharField(max_length=50, verbose_name='Teléfono', blank=True, null=True)
+    email = models.EmailField(verbose_name='Correo', blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'Empresa'
+        verbose_name_plural = 'Empresas'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
 class Inspectores(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
     name = models.CharField(max_length=200, verbose_name='Nombres')
@@ -81,7 +111,7 @@ class Inspectores(models.Model):
     titulo = models.ForeignKey(Titulos, on_delete=models.CASCADE, verbose_name='Título')
     dni = models.CharField(max_length=8, verbose_name='DNI')
     telephone = models.CharField(max_length=50, verbose_name='Teléfono')
-    mail = models.EmailField(verbose_name='Correo')
+    email = models.EmailField(verbose_name='Correo')
     fullname = models.CharField(max_length=200, editable=False, blank=True, null=True, verbose_name='Inspector')
 
     class Meta:
@@ -135,53 +165,31 @@ def UVI_BD(user_id, token):
             # Actualizar el valor del registro existente
             uvi_obj.valor = valor
         uvi_obj.save()
-# UVI_BD('user_id','token')
-
-
-# def obtener_datos_api(endpoint, headers):
-#     """
-#     Función para realizar una solicitud GET a la API y retornar la respuesta en formato JSON.
-#     """
-#     url = f"{web}{endpoint}"
-#     response = requests.get(url, headers=headers)
-#     return response.json()
-# def procesar_dataframe(data_json):
-#     """
-#     Función para procesar el DataFrame y retornar una lista de diccionarios.
-#     """
-#     df = pd.DataFrame(data_json)
-#     df = df[df['d'] >= '2022-01-01']
-#     return df.to_dict(orient='records')
-# def UVI_BD(user_id, token):
-#     endpoint = "uvi"
-#     headers = {"Authorization": f"BEARER {token}"}
-#     data_json = obtener_datos_api(endpoint, headers)
-#     data_dict = procesar_dataframe(data_json)
-#     for registro in data_dict:
-#         fecha = registro['d']
-#         valor = registro['v']
-#         uvi_obj, created = Uvis.objects.update_or_create(
-#             fecha=fecha,
-#             defaults={'valor': valor},
-#         )
-#         uvi_obj.valor = valor if created else uvi_obj.valor
-#         uvi_obj.save()
-# UVI_BD('user_id', 'token')
-
 
 class Obras(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    expedientes = models.CharField(max_length=20, verbose_name='Expediente')
     codObra = models.CharField(max_length=200, verbose_name='Cod. Obra', editable=False, blank=True, null=True)
     institucion = models.ForeignKey(Instituciones, on_delete=models.CASCADE, verbose_name='Institución')
     inspector = models.ForeignKey(Inspectores, on_delete=models.CASCADE, verbose_name='Inspector')
+    empresa = models.ForeignKey(Empresas, on_delete=models.CASCADE, verbose_name='Empresa',blank=True, null=True)
     inicio = models.DateField(verbose_name='Fecha de inicio')
+    acta_inicio = models.CharField(max_length=20, verbose_name='Acta inicio', blank=True, null=True)
     uvi = models.ForeignKey(Uvis, on_delete=models.CASCADE,verbose_name='Uvi', editable=False, blank=True, null=True)
     plazo = models.IntegerField(verbose_name='Plazo Contractual (días)')
-    vencimiento_contractual = models.DateField(verbose_name='Vencimiento Contractual', editable=False)
+    vencimiento_contractual = models.DateField(verbose_name='Vencimiento Contractual', blank=True, null=True)
     ampliacion_1 = models.IntegerField(verbose_name='1ra Ampliación (días)', blank=True, null=True)
-    vencimiento_ampliacion_1 = models.DateField(verbose_name='Vencimiento 1ra Ampliación Contractual', editable=False, blank=True, null=True)
+    vencimiento_ampliacion_1 = models.DateField(verbose_name='Vencimiento 1ra Ampliación Contractual', blank=True, null=True)
     ampliacion_2 = models.IntegerField(verbose_name='2da Ampliación (días)', blank=True, null=True)
-    vencimiento_ampliacion_2 = models.DateField(verbose_name='Vencimiento 2da Ampliación Contractual', editable=False, blank=True, null=True)
+    vencimiento_ampliacion_2 = models.DateField(verbose_name='Vencimiento 2da Ampliación Contractual', blank=True, null=True)
+    
+    nombre_obra = models.CharField(max_length=100, verbose_name='Obra', null=True, blank=True)
+    acta_ampliacion_1 = models.CharField(max_length=20, blank=True, null=True,verbose_name='Acta ampliacion N°1')
+    acta_ampliacion_2 = models.CharField(max_length=20, blank=True, null=True,verbose_name='Acta ampliacion N°2')
+    monto_contrato = models.FloatField(verbose_name='Monto de contrato ($)',blank=True,null=True)
+    fecha_cotrato = models.DateField(verbose_name='Fecha de contrato',blank=True,null=True)
+    monto_uvi = models.FloatField(verbose_name='Monto de contrato (UVIS)',blank=True,null=True)
+    valor_uvi_contrato = models.FloatField(verbose_name='Valor UVI contrato',blank=True,null=True)
 
     class Meta:
         verbose_name = 'Obra'
@@ -192,7 +200,7 @@ class Obras(models.Model):
         return self.institucion.name
 
     def save(self, *args, **kwargs):
-        self.codObra = f'{str(self.institucion.location.NOMDEPTO)[:3].upper()}{str(self.id).zfill(4)}{str(self.institucion.name)[:4].upper()}'
+        self.codObra = f'{str(self.institucion.clase.subname)[:4].upper()}{str(self.id).zfill(4)}{str(self.institucion.location.NOMDEPTO)[:3].upper()}'
         self.vencimiento_contractual = self.inicio + timedelta(days=self.plazo)
         self.uvi = Uvis.objects.get(fecha=self.inicio)
         if self.ampliacion_1:
@@ -289,15 +297,12 @@ class PresupuestosSubrubros(models.Model):
         ordering = ['presupuesto']
 
     def total_items_presupuesto(self):
-        # if self.precio_unitario_presupuesto:
         if self.rubro_ok == False:
             self.precio_total_presupuesto = self.cantidad * self.precio_unitario_presupuesto
         else:
             self.precio_total_presupuesto = None
 
     def total_items_oferta(self):
-        # if self.precio_unitario_oferta:
-        # dato = PresupuestosSubrubros.objects.filter(presupuesto=self.presupuesto)
         if self.rubro_ok == False:
             self.precio_total_oferta = self.cantidad * self.precio_unitario_oferta
         else:

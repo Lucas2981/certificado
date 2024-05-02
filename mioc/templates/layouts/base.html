@@ -11,7 +11,7 @@
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-md navbar-dark pt-5" style="background-color: #2473ba;">
+    <nav class="navbar navbar-expand-md navbar-dark pt-5" style="background-color: #16a7a1;">
 
         <div class="container">
             <a class="navbar-brand" href="/"><i class="bi bi-house"></i> Inicio</a>
@@ -24,7 +24,7 @@
                     <!-- {% if user.is_authenticated %} -->
                     <!-- {% if perms.pedidos.add_sector %} -->
                     <li class="nav-item">
-                        <a href='#' class="nav-link"><i class="bi bi-bar-chart-steps"></i> Obras</a>
+                        <a href={% url 'obras' %} class="nav-link"><i class="bi bi-bar-chart-steps"></i> Obras</a>
                     </li>
                     <!-- {% endif %}
                     {% if perms.pedidos.add_material %} -->
@@ -53,7 +53,7 @@
         </div>
     </nav>
     <div class="row">
-        <div class="col pt-2" style="background-color: #65a8a4;">
+        <div class="col pt-2" style="background-color: #75e9e8;">
 
         </div>
     </div>
