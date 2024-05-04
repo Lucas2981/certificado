@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'django.contrib.humanize',
     'mioc',
     'sesion',
     'roles.apps.RolesConfig',
@@ -50,6 +51,7 @@ INSTALLED_APPS = [
     'import_export',
     'colorfield',
     'pandas',
+    
 ]
 
 # Editar admin

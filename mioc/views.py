@@ -1,7 +1,13 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db.models import Q
-from . models import Obras
-from . forms import ObraFormAll, ObraFormActas
+from . models import Obras,EmpresaPoliza
+from . forms import ObraFormAll, ObraFormActas,EmpresaPolizaForm
+from django.contrib.auth.decorators import login_required, user_passes_test
+
+
+
+
+
 
 
 # Create your views here.
@@ -50,4 +56,30 @@ def obra_detalle(request,pk):
             'error': 'Error al validar pedido.'
             })
 
-    
+@login_required
+def create_empresa(request):
+    if request.method == 'GET':
+        return render(request, 'fondo_reparo_crear.html', {
+            'form': EmpresaPolizaForm
+        })
+    else:
+        form = EmpresaPolizaForm(request.POST)
+        if form.is_valid():
+            nueva_empresa = form.save(commit=False)
+            print(nueva_empresa.creaEmpresa)
+            nueva_empresa.creaEmpresa = request.user
+            print(nueva_empresa.creaEmpresa)
+            nueva_empresa.save()
+            return redirect('aseguradora')
+        
+
+def lista_empresa(request):
+    empresa = EmpresaPoliza.objects.all()
+    queryset = request.GET.get('buscar')
+    if queryset:
+        empresa = empresa.objects.filter(
+            Q(empresa__icontains=queryset) |
+            Q(location__icontains=queryset)|
+            Q(telefono__icontains=queryset),
+            ).distinct().order_by('empresa',)
+    return render(request, 'empresa_lista.html',{'empresa': empresa, })

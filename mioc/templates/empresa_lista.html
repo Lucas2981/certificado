@@ -2,11 +2,11 @@
 {% block content %}
 
 <main class="container py-5">
-    <h1 class="display-1 text-center fw-medium">Obras por Contrato</h1>
+    <h1 class="display-1 text-center fw-medium">Aseguradoras</h1>
     <br>
     <div class="container">
-        <div class="row">
-            <div class="col-md-12 search">
+        <div class="row flex-fill">
+            <div class="col-md-10 search">
                 <form method="get">
                     <div id="custom-search-input">
                         <div class="input-group col-md-12">
@@ -23,6 +23,11 @@
                     </div>
                 </form>
             </div>
+            <div class="col-1">
+                <a href={% url 'nueva' %} type="" class="btn btn-outline-secondary">
+                    <i class="bi bi-plus-lg"></i>
+                </a>
+            </div>
         </div>
     </div>
     <hr size="5" color="grey" noshade>
@@ -30,30 +35,23 @@
     <div class="table-responsive">
         <table class="table table-hover">
             <thead class="table-success">
-                <th>Cod. Obra</th>
-                <th>Obra</th>
                 <th>Empresa</th>
-                <th>Área</th>
-                <th>Dpto</th>
-                <th>Estado</th>
-                <th>Inspector</th>
+                <th>Domicilio</th>
+                <th>Teléfono</th>
+                <th>Registró</th>
             </thead>
             <tbody>
-                {% for obra in obras %}
+                {% for x in empresa %}
                 <tr></td>
-                    <td><a href="{% url 'obra_detalle' obra.id %}"
-                        class="link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" style="--bs-link-hover-color-rgb: 21,136,131;">{{obra.codObra}}</td>
-                    <td>{{obra.institucion.name}}</td>
-                    <td>{{obra.empresa.name}}</td>
-                    <td>{{obra.institucion.clase.name}}</td>
-                    <td>{{obra.institucion.location.NOMDEPTO}}</td>
-                    <td>{{obra.estado}}</td>
-                    <td>{{obra.inspector.fullname}}</td>
+                    <td><a href="#"
+                        class="link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" style="--bs-link-hover-color-rgb: 21,136,131;">{{x.empresa}}</td>
+                    <td>{{x.location}}</td>
+                    <td>{{x.telefono}}</td>
+                    <td>{{x.creaEmpresa}}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </main>
-
 {% endblock %}

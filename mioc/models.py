@@ -166,15 +166,29 @@ def UVI_BD(user_id, token):
             uvi_obj.valor = valor
         uvi_obj.save()
 
+class EmpresaPoliza(models.Model):
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    empresa = models.CharField(max_length=50,verbose_name='Nombre de empresa aseguradora')
+    location = models.CharField(max_length=50,null=True,blank=True,verbose_name='Domicilio')
+    telefono = models.CharField(max_length=10,null=True,blank=True,verbose_name='Teléfono')
+    creaEmpresa = models.ForeignKey(User,on_delete=models.CASCADE, verbose_name='Empresa creada por',default=1)
+    class Meta:
+        verbose_name = 'Aseguradora'
+        verbose_name_plural = 'Aseguradoras'
+        ordering = ['empresa']
+
+    def __str__(self):
+        return self.empresa
+    
 class Obras(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
-    expedientes = models.CharField(max_length=20, verbose_name='Expediente')
+    expedientes = models.CharField(max_length=30, verbose_name='Expediente')
     codObra = models.CharField(max_length=200, verbose_name='Cod. Obra', editable=False, blank=True, null=True)
     institucion = models.ForeignKey(Instituciones, on_delete=models.CASCADE, verbose_name='Institución')
     inspector = models.ForeignKey(Inspectores, on_delete=models.CASCADE, verbose_name='Inspector')
     empresa = models.ForeignKey(Empresas, on_delete=models.CASCADE, verbose_name='Empresa',blank=True, null=True)
     inicio = models.DateField(verbose_name='Fecha de inicio')
-    acta_inicio = models.CharField(max_length=20, verbose_name='Acta inicio', blank=True, null=True)
+    acta_inicio = models.CharField(max_length=30, verbose_name='Acta inicio', blank=True, null=True)
     uvi = models.ForeignKey(Uvis, on_delete=models.CASCADE,verbose_name='Uvi', editable=False, blank=True, null=True)
     plazo = models.IntegerField(verbose_name='Plazo Contractual (días)')
     vencimiento_contractual = models.DateField(verbose_name='Vencimiento Contractual', blank=True, null=True)
@@ -182,14 +196,18 @@ class Obras(models.Model):
     vencimiento_ampliacion_1 = models.DateField(verbose_name='Vencimiento 1ra Ampliación Contractual', blank=True, null=True)
     ampliacion_2 = models.IntegerField(verbose_name='2da Ampliación (días)', blank=True, null=True)
     vencimiento_ampliacion_2 = models.DateField(verbose_name='Vencimiento 2da Ampliación Contractual', blank=True, null=True)
-    
-    nombre_obra = models.CharField(max_length=100, verbose_name='Obra', null=True, blank=True)
-    acta_ampliacion_1 = models.CharField(max_length=20, blank=True, null=True,verbose_name='Acta ampliacion N°1')
-    acta_ampliacion_2 = models.CharField(max_length=20, blank=True, null=True,verbose_name='Acta ampliacion N°2')
+    # Check Eber
+    nombre_obra = models.CharField(max_length=250, verbose_name='Obra', null=True, blank=True)
+    acta_ampliacion_1 = models.CharField(max_length=30, blank=True, null=True,verbose_name='Acta ampliacion N°1')
+    acta_ampliacion_2 = models.CharField(max_length=30, blank=True, null=True,verbose_name='Acta ampliacion N°2')
     monto_contrato = models.FloatField(verbose_name='Monto de contrato ($)',blank=True,null=True)
     fecha_cotrato = models.DateField(verbose_name='Fecha de contrato',blank=True,null=True)
     monto_uvi = models.FloatField(verbose_name='Monto de contrato (UVIS)',blank=True,null=True)
     valor_uvi_contrato = models.FloatField(verbose_name='Valor UVI contrato',blank=True,null=True)
+    # Check Vanina
+    acta_fondo_reparo = models.CharField(max_length=30, blank=True,null=True, verbose_name='Acta póliza sustitución Fondo de Reparo')
+    poliza_sustitucion = models.IntegerField(null=True,blank=True,verbose_name='N° Póliza Fondo de Reparo')
+    empresa_poliza = models.ForeignKey(EmpresaPoliza, on_delete=models.CASCADE, blank=True, null=True,verbose_name='Empresa aseguradora')
 
     class Meta:
         verbose_name = 'Obra'
@@ -202,7 +220,10 @@ class Obras(models.Model):
     def save(self, *args, **kwargs):
         self.codObra = f'{str(self.institucion.clase.subname)[:4].upper()}{str(self.id).zfill(4)}{str(self.institucion.location.NOMDEPTO)[:3].upper()}'
         self.vencimiento_contractual = self.inicio + timedelta(days=self.plazo)
-        self.uvi = Uvis.objects.get(fecha=self.inicio)
+        try:
+            self.uvi = Uvis.objects.get(fecha=self.inicio)
+        except Uvis.DoesNotExist:
+            pass
         if self.ampliacion_1:
             self.vencimiento_ampliacion_1 = self.inicio + \
                 timedelta(days=self.plazo) + timedelta(days=self.ampliacion_1)

@@ -1,0 +1,32 @@
+{% extends 'layouts/base.html' %}
+{% block content %}
+{% load crispy_forms_tags %}
+
+<main class="container">
+    <div class="row">
+        <div class="col-md-4 offset-md-4 mt-5">
+            <form method="POST" class="card card-body">
+                <h1>Empresa Nueva</h1>
+                {% csrf_token %}
+                {{form|crispy }}
+                <button class="btn btn-primary">
+                    Guardar
+                </button>
+            </form>
+        </div>
+    </div>
+</main>
+
+<div class="col-lg-6">
+    <form action="" method="POST">
+        {% csrf_token %}
+        <div class="col">
+            <p class="form-label"> {{ form.empresa|as_crispy_field }} </p>
+            <p class="form-label"> {{ form.location|as_crispy_field }} </p>
+            <p class="form-label"> {{ form.telefono|as_crispy_field }} </p>
+        </div>
+        <div class="d-flex justify-content-end mt-3">
+            <button type='submit' class="btn btn-primary"> Guardar</button>
+        </div>
+    </form>
+{% endblock %}
