@@ -9,5 +9,6 @@ urlpatterns = [
     path('obras/detalle/<int:pk>/',login_required(views.obra_detalle), name='obra_detalle'),
     path('aseguradora/',login_required(views.lista_empresa), name='aseguradora'),
     path('aseguradora/nueva',login_required(views.create_empresa), name='nueva'),
+    path('aseguradora/editar/<int:pk>/',login_required(views.edit_empresa), name='editar'),
 
 ]

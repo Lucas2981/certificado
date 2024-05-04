@@ -2,12 +2,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.db.models import Q
 from . models import Obras,EmpresaPoliza
 from . forms import ObraFormAll, ObraFormActas,EmpresaPolizaForm
-from django.contrib.auth.decorators import login_required, user_passes_test
-
-
-
-
-
+from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
 
 
 # Create your views here.
@@ -20,7 +15,7 @@ def index(request):
         'titulo': saludo,
         'creador': creador,
     })
-
+# @permission_required('mioc.view_uvis')
 def obras(request):
     obras = Obras.objects.all()
     queryset = request.GET.get('buscar')
@@ -47,7 +42,7 @@ def obra_detalle(request,pk):
             pedido = get_object_or_404(Obras, pk=pk)
             form2 = ObraFormActas(request.POST, instance=pedido)
             form2.save()
-            return redirect('obras')
+            return redirect(f'/obras/detalle/{pk}/')
         except ValueError:
             pedido = get_object_or_404(Obras, pk=pk)
             form = ObraFormAll(instance=pedido)
@@ -56,7 +51,6 @@ def obra_detalle(request,pk):
             'error': 'Error al validar pedido.'
             })
 
-@login_required
 def create_empresa(request):
     if request.method == 'GET':
         return render(request, 'fondo_reparo_crear.html', {
@@ -66,20 +60,58 @@ def create_empresa(request):
         form = EmpresaPolizaForm(request.POST)
         if form.is_valid():
             nueva_empresa = form.save(commit=False)
-            print(nueva_empresa.creaEmpresa)
             nueva_empresa.creaEmpresa = request.user
-            print(nueva_empresa.creaEmpresa)
             nueva_empresa.save()
             return redirect('aseguradora')
         
-
+def edit_empresa(request,pk):
+    if request.method == 'GET':
+        asegura = get_object_or_404(EmpresaPoliza, pk=pk)
+        form = EmpresaPolizaForm(instance=asegura)
+        return render(request, 'fondo_reparo_editar.html', {
+            'form': form,
+            })
+    else:
+        try:
+            asegura = get_object_or_404(EmpresaPoliza, pk=pk)
+            form = EmpresaPolizaForm(request.POST, instance=asegura)
+            form.save()
+            return redirect('aseguradora')
+        except ValueError:
+            asegura = get_object_or_404(EmpresaPoliza, pk=pk)
+            form = EmpresaPolizaForm(instance=asegura)
+            return render(request, 'fondo_reparo_editar.html', {
+            'form': form,
+            'error': 'Error al validar pedido.'
+            })
 def lista_empresa(request):
     empresa = EmpresaPoliza.objects.all()
     queryset = request.GET.get('buscar')
     if queryset:
-        empresa = empresa.objects.filter(
+        empresa = EmpresaPoliza.objects.filter(
             Q(empresa__icontains=queryset) |
             Q(location__icontains=queryset)|
             Q(telefono__icontains=queryset),
             ).distinct().order_by('empresa',)
     return render(request, 'empresa_lista.html',{'empresa': empresa, })
+
+def polizaForm(request,pk):
+    if request.method == 'GET':
+        asegura = get_object_or_404(ObraFormAll, pk=pk)
+        form = ObraFormActas(instance=asegura)
+        return render(request, 'fondo_reparo_editar.html', {
+            'form': form,
+            })
+    else:
+        try:
+            asegura = get_object_or_404(ObraFormAll, pk=pk)
+            form = ObraFormActas(request.POST, instance=asegura)
+            form.save()
+            return redirect('aseguradora')
+        except ValueError:
+            asegura = get_object_or_404(ObraFormAll, pk=pk)
+            form = ObraFormActas(instance=asegura)
+            return render(request, 'fondo_reparo_editar.html', {
+            'form': form,
+            'error': 'Error al validar pedido.'
+            })

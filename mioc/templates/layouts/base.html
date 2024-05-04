@@ -1,38 +1,55 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
+    
     <title>Usuario: {% if user.first_name == '' %} {{user.username}} {% else %} {{user.first_name | upper}} {% endif %}
     </title>
 </head>
 
 <body>
+    {% load static %}
     <nav class="navbar navbar-expand-md navbar-dark pt-5" style="background-color: #16a7a1;">
 
         <div class="container">
-            <a class="navbar-brand" href="/"><i class="bi bi-house"></i> Inicio</a>
+            <a class="navbar-brand" href="/">
+                <img src={% static 'image/mioc_bco.png' %} alt="Dpto Certificaciones" height="40">
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
-                    <!-- {% if user.is_authenticated %} -->
-                    <!-- {% if perms.pedidos.add_sector %} -->
+                    {% if user.is_authenticated %}
+                    {% if perms.mioc %}
                     <li class="nav-item">
                         <a href={% url 'obras' %} class="nav-link"><i class="bi bi-bar-chart-steps"></i> Obras</a>
                     </li>
-                    <!-- {% endif %}
-                    {% if perms.pedidos.add_material %} -->
-                    <li class="nav-item">
-                        <a href={% url 'aseguradora' %} class="nav-link"><i class="bi bi-house-lock"></i> Aseguradoras</a>
+                    {% endif %}
+                    {% if perms.mioc.view_empresapoliza %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            Fondo Sustitución
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href={% url 'aseguradora' %}><i class="bi bi-house-lock"></i>
+                                    Aseguradoras</a></li>
+                            <li><a class="dropdown-item" href={% url 'nueva' %}><i class="bi bi-plus-lg"></i> Crear
+                                    Empresa</a></li>
+                            <li>
+                                <hr class="dropdown-divider">
+                            </li>
+                            <li><a class="dropdown-item" href={% url 'obras' %}>Control de Obras</a></li>
+                        </ul>
                     </li>
-                    <!-- {% endif %}
-                    {% if perms.pedidos.view_material %} -->
+                    {% endif %}
+                    <!-- {% if perms.pedidos.view_material %} -->
                     <li class="nav-item">
                         <a href='/admin' class="nav-link"><i class="bi bi-clipboard-check"></i> Certificar</a>
                     </li>
@@ -41,13 +58,15 @@
                     </li>
                     <!-- {% endif %} -->
                     <li class="nav-item">
-                        <a href={% url 'logout' %} class="nav-link"><i class="bi bi-box-arrow-right"></i> Cerrar sesión</a>
+                        <a href={% url 'logout' %} class="nav-link"><i class="bi bi-box-arrow-right"></i> Cerrar
+                            sesión</a>
                     </li>
-                    <!-- {% else %} -->
+                    {% else %}
                     <li class="nav-item">
-                        <a href={% url 'signin' %} class="nav-link"><i class="bi bi-box-arrow-in-right"></i> Inicia sesión</a>
+                        <a href={% url 'signin' %} class="nav-link"><i class="bi bi-box-arrow-in-right"></i> Inicia
+                            sesión</a>
                     </li>
-                    <!-- {% endif %} -->
+                    {% endif %}
                 </ul>
             </div>
         </div>
@@ -66,18 +85,29 @@
                 <!-- <a href="/" class="mb-3 me-2 mb-md-0 text-body-secondary text-decoration-none lh-1">
                     <img src="/media/mioc azul.png" alt="" width="200" >
                 </a> -->
-                <span>&copy; <a href="https://portal.catamarca.gob.ar/organismos/secretaria-de-obras-civiles-por-contrato" target="_blank" rel="noopener noreferrer" class="mb-3 mb-md-0 text-body-secondary link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"> 2024 Ministerio de Infraestructura y Obras Civiles | Secretaría de Obras por Contrato</a></span>
+                <span>&copy; <a
+                        href="https://portal.catamarca.gob.ar/organismos/secretaria-de-obras-civiles-por-contrato"
+                        target="_blank" rel="noopener noreferrer"
+                        class="mb-3 mb-md-0 text-body-secondary link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
+                        2024 Ministerio de Infraestructura y Obras Civiles | Secretaría de Obras por Contrato</a></span>
             </div>
             <ul class="nav col-md-4 justify-content-end list-unstyled d-flex">
-                <li class="ms-3"><a class="text-body-secondary" href="https://www.youtube.com/@ministeriodeinfraestructura" target="_blank"><i class="bi bi-youtube"></i>
-                            <use xlink:href="#Youtube" />
-                        </svg></a></li>
-                <li class="ms-3"><a class="text-body-secondary" href="https://www.instagram.com/infraestructurayobrasciviles?igsh=MTZpMGxidHdyd3M0Ng==" target="_blank"><i class="bi bi-instagram"></i>
-                            <use xlink:href="#instagram" />
-                        </svg></a></li>
+                <li class="ms-3"><a class="text-body-secondary"
+                        href="https://www.youtube.com/@ministeriodeinfraestructura" target="_blank"><i
+                            class="bi bi-youtube"></i>
+                        <use xlink:href="#Youtube" />
+                        </svg>
+                    </a></li>
+                <li class="ms-3"><a class="text-body-secondary"
+                        href="https://www.instagram.com/infraestructurayobrasciviles?igsh=MTZpMGxidHdyd3M0Ng=="
+                        target="_blank"><i class="bi bi-instagram"></i>
+                        <use xlink:href="#instagram" />
+                        </svg>
+                    </a></li>
                 <li class="ms-3"><a class="text-body-secondary" href="#"><i class="bi bi-facebook"></i>
-                            <use xlink:href="#facebook" />
-                        </svg></a></li>
+                        <use xlink:href="#facebook" />
+                        </svg>
+                    </a></li>
             </ul>
         </footer>
     </div>

@@ -188,7 +188,6 @@ class Obras(models.Model):
     inspector = models.ForeignKey(Inspectores, on_delete=models.CASCADE, verbose_name='Inspector')
     empresa = models.ForeignKey(Empresas, on_delete=models.CASCADE, verbose_name='Empresa',blank=True, null=True)
     inicio = models.DateField(verbose_name='Fecha de inicio')
-    acta_inicio = models.CharField(max_length=30, verbose_name='Acta inicio', blank=True, null=True)
     uvi = models.ForeignKey(Uvis, on_delete=models.CASCADE,verbose_name='Uvi', editable=False, blank=True, null=True)
     plazo = models.IntegerField(verbose_name='Plazo Contractual (días)')
     vencimiento_contractual = models.DateField(verbose_name='Vencimiento Contractual', blank=True, null=True)
@@ -196,15 +195,18 @@ class Obras(models.Model):
     vencimiento_ampliacion_1 = models.DateField(verbose_name='Vencimiento 1ra Ampliación Contractual', blank=True, null=True)
     ampliacion_2 = models.IntegerField(verbose_name='2da Ampliación (días)', blank=True, null=True)
     vencimiento_ampliacion_2 = models.DateField(verbose_name='Vencimiento 2da Ampliación Contractual', blank=True, null=True)
-    # Check Eber
-    nombre_obra = models.CharField(max_length=250, verbose_name='Obra', null=True, blank=True)
-    acta_ampliacion_1 = models.CharField(max_length=30, blank=True, null=True,verbose_name='Acta ampliacion N°1')
-    acta_ampliacion_2 = models.CharField(max_length=30, blank=True, null=True,verbose_name='Acta ampliacion N°2')
+    nombre_obra = models.CharField(max_length=250, verbose_name='Carátula Obra', null=True, blank=True)
     monto_contrato = models.FloatField(verbose_name='Monto de contrato ($)',blank=True,null=True)
     fecha_cotrato = models.DateField(verbose_name='Fecha de contrato',blank=True,null=True)
     monto_uvi = models.FloatField(verbose_name='Monto de contrato (UVIS)',blank=True,null=True)
     valor_uvi_contrato = models.FloatField(verbose_name='Valor UVI contrato',blank=True,null=True)
+    
+    # Check Eber
+    acta_inicio = models.CharField(max_length=30, verbose_name='Acta inicio', blank=True, null=True)
+    acta_ampliacion_1 = models.CharField(max_length=30, blank=True, null=True,verbose_name='Acta ampliacion N°1')
+    acta_ampliacion_2 = models.CharField(max_length=30, blank=True, null=True,verbose_name='Acta ampliacion N°2')
     # Check Vanina
+    tiene_poliza = models.BooleanField(null=True,blank=True, verbose_name='Presenta póliza de sustitución?')
     acta_fondo_reparo = models.CharField(max_length=30, blank=True,null=True, verbose_name='Acta póliza sustitución Fondo de Reparo')
     poliza_sustitucion = models.IntegerField(null=True,blank=True,verbose_name='N° Póliza Fondo de Reparo')
     empresa_poliza = models.ForeignKey(EmpresaPoliza, on_delete=models.CASCADE, blank=True, null=True,verbose_name='Empresa aseguradora')

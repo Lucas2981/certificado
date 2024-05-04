@@ -33,9 +33,8 @@
                 <th>Cod. Obra</th>
                 <th>Obra</th>
                 <th>Empresa</th>
-                <th>Área</th>
                 <th>Dpto</th>
-                <th>Estado</th>
+                <th>Finaliza</th>
                 <th>Inspector</th>
             </thead>
             <tbody>
@@ -45,15 +44,15 @@
                         class="link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" style="--bs-link-hover-color-rgb: 21,136,131;">{{obra.codObra}}</td>
                     <td>{{obra.institucion.name}}</td>
                     <td>{{obra.empresa.name}}</td>
-                    <td>{{obra.institucion.clase.name}}</td>
                     <td>{{obra.institucion.location.NOMDEPTO}}</td>
-                    <td>{{obra.estado}}</td>
+                    <td>{{obra.vencimiento_contractual}}</td>
                     <td>{{obra.inspector.fullname}}</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    {{ perms.mioc }}
 </main>
 
 {% endblock %}

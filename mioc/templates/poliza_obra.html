@@ -1,12 +1,12 @@
 {% extends 'layouts/base.html' %}
 {% block content %}
 {% load crispy_forms_tags %}
-{% load static %}
+
 <main class="container">
     <div class="row">
         <div class="col-md-4 offset-md-4 mt-5">
             <form method="POST" class="card card-body">
-                <h1><i class="bi bi-person-plus"></i> Empresa Nueva</h1>
+                <h1>Obra</h1>
                 {% csrf_token %}
                 {{form|crispy }}
                 <button class="btn btn-primary">

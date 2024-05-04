@@ -7,24 +7,24 @@
     <br>
     <div class="row">
         {% if request.method == 'GET' %}
-        <!-- {% if perms.pedidos.view_pedido %} -->
+        {% if perms.mioc %}
         <div class="col-lg-6">
             <form action="" method="GET">
                 <fieldset disabled>
                     <div class="col">
+                        <p class="form-label">{{ form.institucion|as_crispy_field }}</p>
                         <p class="form-label">{{ form.expedientes|as_crispy_field }}</p>
                         <p class="form-label">{{ form.nombre_obra|as_crispy_field }}</p>
-                        <p class="form-label">{{ form.institucion|as_crispy_field }}</p>
                         <p class="form-label">{{ form.empresa|as_crispy_field }}</p>
                         <p class="form-label"> {{ form.inspector|as_crispy_field }} </p>
                         <p class="form-label"> {{ form.inicio|as_crispy_field }} </p>
-                        <p class="form-label"> {{ form.acta_inicio|as_crispy_field }} </p>
+                        <!-- <p class="form-label"> {{ form.acta_inicio|as_crispy_field }} </p>
                         <p class="form-label"> {{ form.plazo|as_crispy_field }} </p>
                         <p class="form-label"> {{ form.vencimiento_contractual|as_crispy_field }} </p>
                         <p class="form-label"> {{ form.monto_contrato|as_crispy_field }} </p>
                         <p class="form-label"> {{ form.fecha_cotrato|as_crispy_field }} </p>
                         <p class="form-label"> {{ form.valor_uvi_contrato|as_crispy_field }} </p>
-                        <p class="form-label"> {{ form.monto_uvi|as_crispy_field }} </p>
+                        <p class="form-label"> {{ form.monto_uvi|as_crispy_field }} </p> -->
                     </div>
                 </fieldset>
             </form>
@@ -33,20 +33,31 @@
             <form action="" method="POST">
                 {% csrf_token %}
                 <div class="col">
-                    
+                    <!-- Vista Vanina -->
+                    {% if perms.mioc.view_empresapoliza %}
+                    <p class="form-label"> {{ form2.tiene_poliza|as_crispy_field }} </p>
+                    {% if form2.tiene_poliza.value == True %}
+                    <p class="form-label"> {{ form2.acta_fondo_reparo|as_crispy_field }} </p>
+                    <p class="form-label"> {{ form2.poliza_sustitucion|as_crispy_field }} </p>
+                    <p class="form-label"> {{ form2.empresa_poliza|as_crispy_field }} </p>
+                    {% endif %}
+                    {% endif %}
+                    <!-- Vista Eber -->
+                    {% if perms.mioc.view_uvis %}
                     <p class="form-label"> {{ form2.ampliacion_1|as_crispy_field }} </p>
                     <p class="form-label"> {{ form2.acta_ampliacion_1|as_crispy_field }} </p>
                     <p class="form-label"> {{ form2.ampliacion_2|as_crispy_field }} </p>
                     <p class="form-label"> {{ form2.acta_ampliacion_2|as_crispy_field }} </p>
-
+                    {% endif %}
                 </div>
-                <div class="d-flex justify-content-end mt-3">
-                    <button type='submit' class="btn btn-primary"> Guardar</button>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type='submit' class="btn btn-primary"> Actualizar</button>
+                    <a href={% url 'obras' %} class="btn btn-secondary">Volver</a>
                 </div>
             </form>
+            <div class="d-flex justify-content-end mt-3">
+            </div>
         </div>
-
-
         {% endif %}
         {% endif %}
 

@@ -1,6 +1,6 @@
 {% extends 'layouts/base.html' %}
 {% block content %}
-
+{% load static %}
 <main class="container py-5">
     <h1 class="display-1 text-center fw-medium">Aseguradoras</h1>
     <br>
@@ -43,7 +43,7 @@
             <tbody>
                 {% for x in empresa %}
                 <tr></td>
-                    <td><a href="#"
+                    <td><a href="{% url 'editar' x.id %}"
                         class="link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" style="--bs-link-hover-color-rgb: 21,136,131;">{{x.empresa}}</td>
                     <td>{{x.location}}</td>
                     <td>{{x.telefono}}</td>
