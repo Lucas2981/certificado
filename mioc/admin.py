@@ -1,7 +1,7 @@
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from django.contrib import admin
-from .models import (Empresas, Estados, Location,Clases,Instituciones,Titulos,Inspectores,Obras,Rubros,
+from .models import (Certificados, Empresas, Estados, Location,Clases,Instituciones,Titulos,Inspectores,Obras,Rubros,
                     Subrubros,Presupuestos,PresupuestosSubrubros,Uvis,Unidades,EmpresaPoliza)
 
 # Register your models here.
@@ -118,3 +118,7 @@ admin.site.register(Unidades,UnidadesAdmin)
 class EmpresaPolizaAdmin(admin.ModelAdmin):
     list_display = ('id','empresa','creaEmpresa')
 admin.site.register(EmpresaPoliza,EmpresaPolizaAdmin)
+
+class CertificadoAdmin(admin.ModelAdmin):
+    list_display = ('id','obra','nro_cert','fecha','uvi')
+admin.site.register(Certificados,CertificadoAdmin)

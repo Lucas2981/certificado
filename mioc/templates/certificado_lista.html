@@ -2,7 +2,7 @@
 {% block content %}
 
 <main class="container py-5">
-    <h1 class="display-1 text-center fw-medium">Listado de Obras</h1>
+    <h1 class="display-1 text-center fw-medium">Certificados de Obra</h1>
     <br>
     <div class="container">
         <div class="row">
@@ -32,28 +32,27 @@
             <thead class="table-success">
                 <th>Cod. Obra</th>
                 <th>Obra</th>
-                <th>Empresa</th>
-                <th>Dpto</th>
-                <th>Finaliza</th>
-                <th>Inspector</th>
+                <th>Certificado N°</th>
+                <th>Fecha certificado</th>
+                <th>Cant. UVIs</th>
                 <th>Acciones</th>
             </thead>
             <tbody>
-                {% for obra in obras %}
+                {% for certificado in certificados %}
                 <tr>
                     </td>
-                    <td class="fw-semibold">{{obra.codObra}}</td>
-                    <td>{{obra.institucion.name}}</td>
-                    <td>{{obra.empresa.name}}</td>
-                    <td>{{obra.institucion.location.NOMDEPTO}}</td>
-                    <td>{{obra.vencimiento_contractual}}</td>
-                    <td>{{obra.inspector.fullname}}</td>
+                    <td class="fw-semibold">{{certificado.obra.codObra}}</td>
+                    <td>{{certificado.obra.institucion.name}}</td>
+                    <td>{{certificado.nro_cert}}</td>
+                    <td>{{certificado.fecha}}</td>
+                    <td>{{certificado.uvi}}</td>
                     <td>
                         <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">
-                            <a type="button" class="btn btn-outline-info" href="{% url 'obra_detalle' obra.id %}">Detalle</a>
-                            <a type="button" class="btn btn-outline-info">Actas</a>
-                            <a type="button" class="btn btn-outline-info" href="{% url 'obra_poliza' obra.id %}">Poliza</a>
-                            <a type="button" class="btn btn-outline-info" href="{% url 'certificados' %}">Certificados</a>
+                            <a type="button" class="btn btn-outline-info">Estado</a>
+                            <a type="button" class="btn btn-outline-info" href="{% url 'certificados_obra' certificado.obra_id %}">Obra</a>
+                            {% if perms.mioc.view_inspectores %}
+                            <a type="button" class="btn btn-outline-danger" href="#">Eliminar</a>
+                            {% endif %}
                         </div>
                     </td>
                 </tr>
@@ -61,7 +60,5 @@
             </tbody>
         </table>
     </div>
-    {{ perms.mioc }}
 </main>
-
 {% endblock %}

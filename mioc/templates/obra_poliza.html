@@ -3,7 +3,7 @@
 {% load crispy_forms_tags %}
 
 <main class="container py-5">
-    <h1 class="display-1 text-center fw-medium">Detalle de Obra {{form.codObra}}</h1>
+    <h1 class="display-1 text-center fw-medium">Poliza de Sustitución {{form.codObra}}</h1>
     <br>
     <div class="row">
         {% if request.method == 'GET' %}
@@ -18,13 +18,6 @@
                         <p class="form-label">{{ form.empresa|as_crispy_field }}</p>
                         <p class="form-label"> {{ form.inspector|as_crispy_field }} </p>
                         <p class="form-label"> {{ form.inicio|as_crispy_field }} </p>
-                        <!-- <p class="form-label"> {{ form.acta_inicio|as_crispy_field }} </p>
-                        <p class="form-label"> {{ form.plazo|as_crispy_field }} </p>
-                        <p class="form-label"> {{ form.vencimiento_contractual|as_crispy_field }} </p>
-                        <p class="form-label"> {{ form.monto_contrato|as_crispy_field }} </p>
-                        <p class="form-label"> {{ form.fecha_cotrato|as_crispy_field }} </p>
-                        <p class="form-label"> {{ form.valor_uvi_contrato|as_crispy_field }} </p>
-                        <p class="form-label"> {{ form.monto_uvi|as_crispy_field }} </p> -->
                     </div>
                 </fieldset>
             </form>
@@ -41,13 +34,6 @@
                     <p class="form-label"> {{ form2.poliza_sustitucion|as_crispy_field }} </p>
                     <p class="form-label"> {{ form2.empresa_poliza|as_crispy_field }} </p>
                     {% endif %}
-                    {% endif %}
-                    <!-- Vista Eber -->
-                    {% if perms.mioc.view_uvis %}
-                    <p class="form-label"> {{ form2.ampliacion_1|as_crispy_field }} </p>
-                    <p class="form-label"> {{ form2.acta_ampliacion_1|as_crispy_field }} </p>
-                    <p class="form-label"> {{ form2.ampliacion_2|as_crispy_field }} </p>
-                    <p class="form-label"> {{ form2.acta_ampliacion_2|as_crispy_field }} </p>
                     {% endif %}
                 </div>
                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">

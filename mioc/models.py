@@ -373,3 +373,17 @@ class PresupuestosSubrubros(models.Model):
         
     #     super().save(*args, **kwargs)
 
+class Certificados(models.Model):
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    obra = models.ForeignKey(Obras,on_delete=models.CASCADE,verbose_name='Obra')
+    nro_cert = models.PositiveIntegerField(verbose_name='Certificado N°')
+    fecha = models.DateField(verbose_name='Fecha certificado')
+    uvi = models.FloatField(verbose_name='Cant UVIs certificados')
+    cargaCert = models.ForeignKey(User,on_delete=models.CASCADE,verbose_name='Cargado por',default=1)
+    class Meta:
+        verbose_name = 'Certificado'
+        verbose_name_plural = 'Certificados'
+        ordering = ['obra','nro_cert']
+
+    def __str__(self):
+        return f'{self.obra.id}'

@@ -1,5 +1,5 @@
 from django.forms import ModelForm
-from .models import Obras,EmpresaPoliza
+from .models import Obras,EmpresaPoliza, Certificados
 from django import forms
 
 class ObraFormAll(ModelForm):
@@ -14,3 +14,8 @@ class EmpresaPolizaForm(ModelForm):
     class Meta:
         model =  EmpresaPoliza     
         fields = ['empresa','location','telefono']
+class CertificadoForm(ModelForm):
+    class Meta:
+        model = Certificados
+        fields = ['obra','nro_cert','fecha','uvi']
+
