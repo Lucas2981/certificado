@@ -390,16 +390,12 @@ class Certificados(models.Model):
         ordering = ['obra','nro_cert']
 
     def clean(self):
-        if self.pk is None:  # Solo valida para nuevos certificados (pk es None)
-            # La verificación de unicidad se realiza después de save() configura codCert
+        if self.pk is None: 
             pass
-
     def save(self, *args, **kwargs):
         self.codCert = f'{str(self.obra.codObra)}C{str(self.nro_cert).zfill(2)}'
         if self.fecha:
             self.periodo = str(self.fecha.strftime('%B %y')).title()
-        super().save(*args, **kwargs)  # Guardar primero para generar codCert
-
-        # Ahora que codCert está configurado, valida su unicidad
         if Certificados.objects.filter(codCert=self.codCert).exclude(pk=self.pk).exists():
-            raise ValidationError('Esta obra ya cuenta con certificado N° %s' % self.nro_cert)
+            raise ValidationError('Esta obra ya cuenta con certificado N° %s' % self.nro_cert)        
+        super().save(*args, **kwargs) 
