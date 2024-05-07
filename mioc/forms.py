@@ -1,4 +1,4 @@
-from django.forms import ModelForm
+from django.forms import DateInput, ModelForm
 from .models import Obras,EmpresaPoliza, Certificados
 from django import forms
 
@@ -14,8 +14,18 @@ class EmpresaPolizaForm(ModelForm):
     class Meta:
         model =  EmpresaPoliza     
         fields = ['empresa','location','telefono']
+
 class CertificadoForm(ModelForm):
     class Meta:
         model = Certificados
-        fields = ['obra','nro_cert','fecha','uvi']
+        fields = ['obra','nro_cert','fecha_acta','fecha','uvi']
+        widgets = {'fecha': forms.DateInput(attrs={'class': 'form-control','type': 'date'}),
+                    'fecha_acta': forms.DateInput(attrs={'class': 'form-control','type': 'date'})}
+
+class CertificadoFormEdit(ModelForm):
+    class Meta:
+        model = Certificados
+        fields = ['obra','nro_cert','fecha_acta','fecha','uvi']
+
+
 

@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models import Sum
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
+from django.forms import ValidationError
 import requests
 import pandas as pd
 import os
@@ -377,13 +378,28 @@ class Certificados(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
     obra = models.ForeignKey(Obras,on_delete=models.CASCADE,verbose_name='Obra')
     nro_cert = models.PositiveIntegerField(verbose_name='Certificado N°')
-    fecha = models.DateField(verbose_name='Fecha certificado')
+    codCert = models.CharField(max_length=200, verbose_name='Cod. Certificado', editable=False, unique=True)
+    fecha = models.DateField(verbose_name='Fecha del certificado')
+    fecha_acta = models.DateField(verbose_name='Presenta Acta Inspector',blank=True, null=True)
     uvi = models.FloatField(verbose_name='Cant UVIs certificados')
     cargaCert = models.ForeignKey(User,on_delete=models.CASCADE,verbose_name='Cargado por',default=1)
+    periodo = models.CharField(max_length=30,verbose_name='Periodo medido',null=True, blank=True)
     class Meta:
         verbose_name = 'Certificado'
         verbose_name_plural = 'Certificados'
         ordering = ['obra','nro_cert']
 
-    def __str__(self):
-        return f'{self.obra.id}'
+    def clean(self):
+        if self.pk is None:  # Solo valida para nuevos certificados (pk es None)
+            # La verificación de unicidad se realiza después de save() configura codCert
+            pass
+
+    def save(self, *args, **kwargs):
+        self.codCert = f'{str(self.obra.codObra)}C{str(self.nro_cert).zfill(2)}'
+        if self.fecha:
+            self.periodo = str(self.fecha.strftime('%B %y')).title()
+        super().save(*args, **kwargs)  # Guardar primero para generar codCert
+
+        # Ahora que codCert está configurado, valida su unicidad
+        if Certificados.objects.filter(codCert=self.codCert).exclude(pk=self.pk).exists():
+            raise ValidationError('Esta obra ya cuenta con certificado N° %s' % self.nro_cert)

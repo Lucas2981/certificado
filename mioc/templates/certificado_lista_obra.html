@@ -37,10 +37,10 @@
     <div class="table-responsive">
         <table class="table table-hover">
             <thead class="table-success">
-                <th>Cod. Obra</th>
+                <th>Cod. Cert</th>
                 <th>Obra</th>
                 <th>Certificado N°</th>
-                <th>Fecha certificado</th>
+                <th>Periodo certificado</th>
                 <th>Cant. UVIs</th>
                 <th>Acciones</th>
             </thead>
@@ -48,16 +48,16 @@
                 {% for certificado in certificados %}
                 <tr>
                     </td>
-                    <td class="fw-semibold">{{certificado.obra.codObra}}</td>
+                    <td class="fw-semibold">{{certificado.codCert}}</td>
                     <td>{{certificado.obra.institucion.name}}</td>
                     <td>{{certificado.nro_cert}}</td>
-                    <td>{{certificado.fecha}}</td>
+                    <td>{{certificado.periodo}}</td>
                     <td>{{certificado.uvi}}</td>
                     <td>
                         <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">
                             <a type="button" class="btn btn-outline-info">Estado</a>
                             {% if perms.mioc.view_inspectores %}
-                            <a type="button" class="btn btn-outline-info" href="#">Editar</a>
+                            <a type="button" class="btn btn-outline-success" href="{% url 'editar_cert' certificado.pk %}">Editar</a>
                             <a type="button" class="btn btn-outline-danger" href="#">Eliminar</a>
                             {% endif %}
                         </div>
@@ -68,5 +68,4 @@
         </table>
     </div>
 </main>
-
 {% endblock %}

@@ -1,7 +1,8 @@
+from django.forms import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db.models import Q,Sum
 from . models import Certificados, Obras, EmpresaPoliza
-from . forms import CertificadoForm, ObraFormAll, ObraFormActas, EmpresaPolizaForm
+from . forms import CertificadoForm, CertificadoFormEdit, ObraFormAll, ObraFormActas, EmpresaPolizaForm
 from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
 
 
@@ -131,10 +132,10 @@ def certificados_lista(request):
     queryset = request.GET.get('buscar')
     if queryset:
         certificados = Certificados.objects.filter(
-            Q(obra__icontains=queryset) |
-            Q(nro_cert__name__icontains=queryset) |
-            Q(fecha__fullname__icontains=queryset) |
-            Q(uvi__name__icontains=queryset),
+            Q(obra__institucion__name__icontains=queryset) |
+            Q(obra__inspector__fullname__icontains=queryset) |
+            Q(nro_cert__icontains=queryset) |
+            Q(periodo__icontains=queryset),
         ).distinct().order_by('nro_cert',)
     return render(request, 'certificado_lista.html', {'certificados': certificados, })
 
@@ -146,10 +147,10 @@ def certificados_lista_obra(request, obra_id):
     obra = obra[0]['obra__institucion__name'].title()
     queryset = request.GET.get('buscar')
     if queryset:
-        certificados = Certificados.objects.filter(
+        certificados = certificados.filter(
+            Q(obra__inspector__fullname__icontains=queryset) |
             Q(nro_cert__icontains=queryset) |
-            Q(fecha__icontains=queryset) |
-            Q(uvi__icontains=queryset),
+            Q(periodo__icontains=queryset),
         ).distinct().order_by('nro_cert',)
     return render(request, 'certificado_lista_obra.html', {
         'certificados': certificados,
@@ -163,8 +164,42 @@ def create_certificado(request):
         })
     else:
         form = CertificadoForm(request.POST)
-        if form.is_valid():
-            nuevo_cert = form.save(commit=False)
-            nuevo_cert.cargaCert = request.user
-            nuevo_cert.save()
+        try:
+            if form.is_valid():
+                nuevo_cert = form.save(commit=False)
+                nuevo_cert.cargaCert = request.user
+                nuevo_cert.save()
+                return redirect('certificados')
+        except ValidationError as e:
+            # Handle the ValidationError raised by the model's clean method
+            error_message = e.messages[0]  # Get the first error message
+            return render(request, 'certificado_crear.html', {'form': form, 'error': error_message})
+        except Exception as e:
+            # Handle any other exceptions that may occur
+            return render(request, 'certificado_crear.html', {'form': form, 'error': 'Ocurrió un error inesperado.'})
+def edit_certificado(request, pk):
+    if request.method == 'GET':
+        certif = get_object_or_404(Certificados, pk=pk)
+        form = CertificadoFormEdit(instance=certif)
+        return render(request, 'certificado_editar.html', {
+            'form': form,
+        })
+    else:
+        try:
+            certif = get_object_or_404(Certificados, pk=pk)
+            # Inicializar el formulario con valores originales
+            initial_data = {
+                'fecha': certif.fecha,
+                'fecha_acta': certif.fecha_acta,
+            }
+            form = CertificadoFormEdit(request.POST, instance=certif, initial=initial_data)
+            form.save()
             return redirect('certificados')
+        except ValueError:
+            certif = get_object_or_404(Certificados, pk=pk)
+            form = CertificadoFormEdit(instance=certif)
+            return render(request, 'certificado_editar.html', {
+                'form': form,
+                'error': 'Error al editar certificado'
+            })
+
