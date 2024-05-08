@@ -1,2 +1,26 @@
 pip freeze > requirements.txt #para crear el archivo
 pip install -r requirements.txt #para instalar las librerias
+
+
+
+This is how I did it in 2021:
+
+Enter Ctrl+Shift+P in your vs code.
+
+Locate your Virtual Environment:
+
+Python: select interpreter > Enter interpreter path > Find
+
+Once you locate your virtual env select your python version:
+
+your-virtual-env > bin > python3.
+
+Now in your project you will see .vscode directory created open settings.json inside of it and add:
+
+"python.terminal.activateEnvironment": true
+
+don't forget to add comma before to separate it with already present key value pair.
+
+Now restart the terminal.
+
+You should see your virtual environment activated automatically.
