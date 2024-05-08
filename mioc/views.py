@@ -1,9 +1,12 @@
 from django.forms import ValidationError
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db.models import Q,Sum
+from django.contrib.auth.decorators import  permission_required
+from django.core.paginator import Paginator
+from django.contrib import messages
 from . models import Certificados, Obras, EmpresaPoliza
 from . forms import CertificadoForm, CertificadoFormEdit, ObraFormAll, ObraFormActas, EmpresaPolizaForm
-from django.contrib.auth.decorators import login_required, user_passes_test, permission_required
 
 
 # Create your views here.
@@ -18,7 +21,6 @@ def index(request):
     })
 # @permission_required('mioc.view_uvis')
 
-
 def obras(request):
     obras = Obras.objects.all()
     queryset = request.GET.get('buscar')
@@ -30,7 +32,6 @@ def obras(request):
             Q(empresa__name__icontains=queryset),
         ).distinct().order_by('institucion',)
     return render(request, 'obras.html', {'obras': obras, })
-
 
 def obra_detalle(request, pk):
     if request.method == 'GET':
@@ -55,7 +56,6 @@ def obra_detalle(request, pk):
                 'error': 'Error al validar pedido.'
             })
 
-
 def obra_poliza(request, pk):
     if request.method == 'GET':
         pedido = get_object_or_404(Obras, pk=pk)
@@ -79,7 +79,6 @@ def obra_poliza(request, pk):
                 'error': 'Error al validar pedido.'
             })
 
-
 def create_empresa(request):
     if request.method == 'GET':
         return render(request, 'fondo_reparo_crear.html', {
@@ -92,7 +91,6 @@ def create_empresa(request):
             nueva_empresa.creaEmpresa = request.user
             nueva_empresa.save()
             return redirect('aseguradora')
-
 
 def edit_empresa(request, pk):
     if request.method == 'GET':
@@ -115,9 +113,14 @@ def edit_empresa(request, pk):
                 'error': 'Error al validar pedido.'
             })
 
-
 def lista_empresa(request):
     empresa = EmpresaPoliza.objects.all()
+    page = request.GET.get('page',1)
+    try:
+        paginator = Paginator(empresa,5)
+        empresa = paginator.page(page)
+    except:
+        raise Http404
     queryset = request.GET.get('buscar')
     if queryset:
         empresa = EmpresaPoliza.objects.filter(
@@ -125,10 +128,16 @@ def lista_empresa(request):
             Q(location__icontains=queryset) |
             Q(telefono__icontains=queryset),
         ).distinct().order_by('empresa',)
-    return render(request, 'empresa_lista.html', {'empresa': empresa, })
+    return render(request, 'empresa_lista.html', {'entity': empresa, 'paginator':paginator })
 
 def certificados_lista(request):
     certificados = Certificados.objects.all()
+    page = request.GET.get('page',1)
+    try:
+        paginator = Paginator(certificados,5)
+        certificados = paginator.page(page)
+    except:
+        raise Http404
     queryset = request.GET.get('buscar')
     if queryset:
         certificados = Certificados.objects.filter(
@@ -137,25 +146,44 @@ def certificados_lista(request):
             Q(nro_cert__icontains=queryset) |
             Q(periodo__icontains=queryset),
         ).distinct().order_by('nro_cert',)
-    return render(request, 'certificado_lista.html', {'certificados': certificados, })
-
+    return render(request, 'certificado_lista.html', {'entity': certificados, 'paginator':paginator})
 
 def certificados_lista_obra(request, obra_id):
     certificados = Certificados.objects.filter(obra_id=obra_id).order_by('nro_cert')
-    obra = certificados.values('obra__institucion__name').annotate(cantidad=Sum('nro_cert'))
-    obra = list(obra)
-    obra = obra[0]['obra__institucion__name'].title()
-    queryset = request.GET.get('buscar')
-    if queryset:
-        certificados = certificados.filter(
-            Q(obra__inspector__fullname__icontains=queryset) |
-            Q(nro_cert__icontains=queryset) |
-            Q(periodo__icontains=queryset),
-        ).distinct().order_by('nro_cert',)
-    return render(request, 'certificado_lista_obra.html', {
-        'certificados': certificados,
-        'obra': obra
-    })
+
+    try:
+        obra = certificados.values('obra__institucion__name').annotate(cantidad=Sum('nro_cert'))
+        obra = list(obra)
+        obra = obra[0]['obra__institucion__name'].title()
+
+        queryset = request.GET.get('buscar')
+        if queryset:
+            certificados = certificados.filter(
+                Q(obra__inspector__fullname__icontains=queryset) |
+                Q(nro_cert__icontains=queryset) |
+                Q(periodo__icontains=queryset),
+            ).distinct().order_by('nro_cert',)
+
+        if not certificados.exists():
+            # No se encontraron certificados, mostrar modal
+            context = {
+                'obra': obra,
+                'modal': True,
+                'modal_message': 'La obra aún no tiene certificados.',
+            }
+            return render(request, 'certificado_lista_obra.html', context)
+
+        return render(request, 'certificado_lista_obra.html', {
+            'certificados': certificados,
+            'obra': obra
+        })
+    except ValidationError as e:
+        # Handle the ValidationError raised by the model's clean method
+        error_message = e.messages[0]  # Get the first error message
+        return render(request, 'obras.html', {'error': error_message})
+    except Exception as e:
+        # Handle any other exceptions that may occur
+        return render(request, 'obras.html', {'error': 'Ocurrió un error inesperado.'})
 
 def create_certificado(request):
     if request.method == 'GET':
@@ -169,6 +197,7 @@ def create_certificado(request):
                 nuevo_cert = form.save(commit=False)
                 nuevo_cert.cargaCert = request.user
                 nuevo_cert.save()
+                messages.success(request, f'Nuevo certificado creado')
                 return redirect('certificados')
         except ValidationError as e:
             # Handle the ValidationError raised by the model's clean method
@@ -177,6 +206,7 @@ def create_certificado(request):
         except Exception as e:
             # Handle any other exceptions that may occur
             return render(request, 'certificado_crear.html', {'form': form, 'error': 'Ocurrió un error inesperado.'})
+
 def edit_certificado(request, pk):
     if request.method == 'GET':
         certif = get_object_or_404(Certificados, pk=pk)
@@ -194,6 +224,7 @@ def edit_certificado(request, pk):
             }
             form = CertificadoFormEdit(request.POST, instance=certif, initial=initial_data)
             form.save()
+            messages.success(request, f'Certificado {certif.nro_cert} editado!')
             return redirect('certificados')
         except ValueError:
             certif = get_object_or_404(Certificados, pk=pk)
@@ -202,4 +233,10 @@ def edit_certificado(request, pk):
                 'form': form,
                 'error': 'Error al editar certificado'
             })
+        
+def delete_certificado(request, pk):
+    certificado = get_object_or_404(Certificados, pk=pk)
+    certificado.delete()
+    messages.success(request, f'Certificado {certificado.nro_cert} eliminado!')
+    return redirect('certificados')
 

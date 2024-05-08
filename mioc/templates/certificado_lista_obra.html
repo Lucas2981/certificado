@@ -57,8 +57,9 @@
                         <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">
                             <a type="button" class="btn btn-outline-info">Estado</a>
                             {% if perms.mioc.view_inspectores %}
-                            <a type="button" class="btn btn-outline-success" href="{% url 'editar_cert' certificado.pk %}">Editar</a>
-                            <a type="button" class="btn btn-outline-danger" href="#">Eliminar</a>
+                            <a type="button" class="btn btn-outline-success"
+                                href="{% url 'editar_cert' certificado.pk %}">Editar</a>
+                            <a type="button" class="btn btn-outline-danger" href="{% url 'eliminar_cert' certificado.pk %}">Eliminar</a>
                             {% endif %}
                         </div>
                     </td>

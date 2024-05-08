@@ -34,6 +34,7 @@ ALLOWED_HOSTS = []
 # ALLOWED_HOSTS = ['c46c-181-84-83-7.ngrok-free.app','localhost:80', '127.0.0.1:80']
 # CSRF_TRUSTED_ORIGINS = ['https://c46c-181-84-83-7.ngrok-free.app']
 
+MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 # Application definition
 
 INSTALLED_APPS = [

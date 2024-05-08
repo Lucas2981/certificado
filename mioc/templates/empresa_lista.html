@@ -39,19 +39,29 @@
                 <th>Domicilio</th>
                 <th>Teléfono</th>
                 <th>Registró</th>
+                <th>Acciones</th>
             </thead>
             <tbody>
-                {% for x in empresa %}
+                {% for x in entity %}
                 <tr></td>
-                    <td><a href="{% url 'editar' x.id %}"
-                        class="link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover" style="--bs-link-hover-color-rgb: 21,136,131;">{{x.empresa}}</td>
+                    <td class="fw-semibold">{{x.empresa}}</td>
                     <td>{{x.location}}</td>
                     <td>{{x.telefono}}</td>
                     <td>{{x.creaEmpresa}}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">
+                            <a type="button" class="btn btn-outline-info">Polizas</a>
+                            {% if perms.mioc.view_empresapoliza %}
+                            <a type="button" class="btn btn-outline-success"
+                                href="{% url 'editar' x.pk %}">Editar</a>
+                            {% endif %}
+                        </div>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    {% include 'paginator.html' %}
 </main>
 {% endblock %}

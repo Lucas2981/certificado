@@ -12,6 +12,7 @@ urlpatterns = [
     path('obras/certificados/<int:obra_id>/',login_required(views.certificados_lista_obra), name='certificados_obra'),
     path('obras/certificados/nuevo',login_required(views.create_certificado), name='nuevo_cert'),
     path('obras/certificados/<int:pk>/editar/',login_required(views.edit_certificado), name='editar_cert'),
+    path('obras/certificados/<int:pk>/eliminar/',login_required(views.delete_certificado), name='eliminar_cert'),
     path('aseguradora/',login_required(views.lista_empresa), name='aseguradora'),
     path('aseguradora/nueva',login_required(views.create_empresa), name='nueva'),
     path('aseguradora/editar/<int:pk>/',login_required(views.edit_empresa), name='editar'),
