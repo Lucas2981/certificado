@@ -192,20 +192,12 @@ class Obras(models.Model):
     uvi = models.ForeignKey(Uvis, on_delete=models.CASCADE,verbose_name='Uvi', editable=False, blank=True, null=True)
     plazo = models.IntegerField(verbose_name='Plazo Contractual (días)')
     vencimiento_contractual = models.DateField(verbose_name='Vencimiento Contractual', blank=True, null=True)
-    ampliacion_1 = models.IntegerField(verbose_name='1ra Ampliación (días)', blank=True, null=True)
-    vencimiento_ampliacion_1 = models.DateField(verbose_name='Vencimiento 1ra Ampliación Contractual', blank=True, null=True)
-    ampliacion_2 = models.IntegerField(verbose_name='2da Ampliación (días)', blank=True, null=True)
-    vencimiento_ampliacion_2 = models.DateField(verbose_name='Vencimiento 2da Ampliación Contractual', blank=True, null=True)
     nombre_obra = models.CharField(max_length=250, verbose_name='Carátula Obra', null=True, blank=True)
     monto_contrato = models.FloatField(verbose_name='Monto de contrato ($)',blank=True,null=True)
     fecha_cotrato = models.DateField(verbose_name='Fecha de contrato',blank=True,null=True)
     monto_uvi = models.FloatField(verbose_name='Monto de contrato (UVIS)',blank=True,null=True)
     valor_uvi_contrato = models.FloatField(verbose_name='Valor UVI contrato',blank=True,null=True)
     
-    # Check Eber
-    acta_inicio = models.CharField(max_length=30, verbose_name='Acta inicio', blank=True, null=True)
-    acta_ampliacion_1 = models.CharField(max_length=30, blank=True, null=True,verbose_name='Acta ampliacion N°1')
-    acta_ampliacion_2 = models.CharField(max_length=30, blank=True, null=True,verbose_name='Acta ampliacion N°2')
     # Check Vanina
     tiene_poliza = models.BooleanField(null=True,blank=True, verbose_name='Presenta póliza de sustitución?')
     acta_fondo_reparo = models.CharField(max_length=30, blank=True,null=True, verbose_name='Acta póliza sustitución Fondo de Reparo')
@@ -227,13 +219,6 @@ class Obras(models.Model):
             self.uvi = Uvis.objects.get(fecha=self.inicio)
         except Uvis.DoesNotExist:
             pass
-        if self.ampliacion_1:
-            self.vencimiento_ampliacion_1 = self.inicio + \
-                timedelta(days=self.plazo) + timedelta(days=self.ampliacion_1)
-        if self.ampliacion_2:
-            self.vencimiento_ampliacion_2 = self.inicio + \
-                timedelta(days=self.plazo) + timedelta(days=self.ampliacion_1) + \
-                timedelta(days=self.ampliacion_2)
         super().save(*args, **kwargs)
 
 class Rubros(models.Model):
@@ -399,3 +384,24 @@ class Certificados(models.Model):
         if Certificados.objects.filter(codCert=self.codCert).exclude(pk=self.pk).exists():
             raise ValidationError('Esta obra ya cuenta con certificado N° %s' % self.nro_cert)        
         super().save(*args, **kwargs) 
+
+class ActaTipo(models.Model):
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    name = models.CharField(max_length=200, verbose_name='Tipo de Acta')
+    class Meta:
+        verbose_name = 'Tipo de Acta'
+        verbose_name_plural = 'Tipos de Actas'
+        ordering = ['name']
+
+class ActasObras(models.Model):
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    obra = models.ForeignKey(Obras, on_delete=models.CASCADE, verbose_name='Obra')
+    tipo = models.ForeignKey(ActaTipo, on_delete=models.CASCADE, verbose_name='Tipo de Acta')
+    fecha = models.DateField(verbose_name='Fecha aplicación Acta', blank=True, null=True)
+    orden = models.PositiveIntegerField(verbose_name='Nro Orden', default=1)
+    dispo = models.CharField(max_length=200, verbose_name='Disposición', blank=True, null=True)
+    class Meta:
+        verbose_name = 'Acta'
+        verbose_name_plural = 'Actas'
+        ordering = ['obra']
+
