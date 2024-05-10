@@ -1,5 +1,5 @@
 from django.forms import DateInput, ModelForm
-from .models import Obras,EmpresaPoliza, Certificados
+from .models import ActasObras, Obras,EmpresaPoliza, Certificados
 from django import forms
 
 class ObraFormAll(ModelForm):
@@ -26,6 +26,17 @@ class CertificadoFormEdit(ModelForm):
     class Meta:
         model = Certificados
         fields = ['obra','nro_cert','fecha_acta','fecha','uvi']
+
+class ActasObrasForm(ModelForm):
+    class Meta:
+        model = ActasObras
+        fields = '__all__'
+        widgets = {'fecha': forms.DateInput(attrs={'class': 'form-control','type': 'date'})}
+
+class ActasObrasFormEdit(ModelForm):
+    class Meta:
+        model = ActasObras
+        fields = ['obra','tipo','fecha','orden','dispo']
 
 
 

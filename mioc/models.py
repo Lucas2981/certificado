@@ -392,6 +392,8 @@ class ActaTipo(models.Model):
         verbose_name = 'Tipo de Acta'
         verbose_name_plural = 'Tipos de Actas'
         ordering = ['name']
+    def __str__(self):
+        return self.name
 
 class ActasObras(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
@@ -400,8 +402,17 @@ class ActasObras(models.Model):
     fecha = models.DateField(verbose_name='Fecha aplicación Acta', blank=True, null=True)
     orden = models.PositiveIntegerField(verbose_name='Nro Orden', default=1)
     dispo = models.CharField(max_length=200, verbose_name='Disposición', blank=True, null=True)
+    codActa = models.CharField(max_length=200, verbose_name='Cod. Acta', editable=False, unique=True, null=True)
     class Meta:
-        verbose_name = 'Acta'
-        verbose_name_plural = 'Actas'
+        verbose_name = 'Acta obra'
+        verbose_name_plural = 'Actas obras'
         ordering = ['obra']
-
+    def clean(self):
+        if self.pk is None: 
+            pass
+    def save(self, *args, **kwargs):
+        self.codActa = f'{str(self.obra.codObra)}A{str(self.tipo.id).zfill(2)}{str(self.orden).zfill(2)}'
+        if ActasObras.objects.filter(codActa=self.codActa).exclude(pk=self.pk).exists():
+            raise ValidationError(f'Esta obra ya cuenta con acta {self.tipo.name} N° {self.orden}')        
+        super().save(*args, **kwargs) 
+    

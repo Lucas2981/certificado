@@ -13,6 +13,13 @@ urlpatterns = [
     path('obras/certificados/nuevo',login_required(views.create_certificado), name='nuevo_cert'),
     path('obras/certificados/<int:pk>/editar/',login_required(views.edit_certificado), name='editar_cert'),
     path('obras/certificados/<int:pk>/eliminar/',login_required(views.delete_certificado), name='eliminar_cert'),
+
+    path('obras/certificados/actas/<int:obra_id>/',login_required(views.actas_lista_obras), name='actas_obra'),
+    path('obras/certificados/actas/',login_required(views.actas_lista), name='actas'),
+    path('obras/certificados/acta/nueva/',login_required(views.actas_obras), name='nueva_acta'),
+    path('obras/certificados/acta/<int:pk>/editar/',login_required(views.actas_obras_editar), name='editar_acta'),
+    
+    
     path('aseguradora/',login_required(views.lista_empresa), name='aseguradora'),
     path('aseguradora/nueva',login_required(views.create_empresa), name='nueva'),
     path('aseguradora/editar/<int:pk>/',login_required(views.edit_empresa), name='editar'),

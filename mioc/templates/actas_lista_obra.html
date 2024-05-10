@@ -1,30 +1,8 @@
 {% extends 'layouts/base.html' %}
-
 {% block content %}
 
-<script>
-    function myFunction() {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "You won't be able to revert this!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Yes, delete it!"
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({
-                    title: "Deleted!",
-                    text: "Your file has been deleted.",
-                    icon: "success"
-                });
-            }
-        });
-    }
-</script>
 <main class="container py-5">
-    <h1 class="display-3 text-center fw-medium">Certificados de Obra</h1>
+    <h3 class="display-3 text-center fw-medium">Actas de {{obra}}</h3>
     <br>
     <div class="container">
         <div class="row">
@@ -41,12 +19,13 @@
                                 </button>
                             </span>
                         </div>
+
                     </div>
                 </form>
             </div>
             {% if perms.mioc.view_inspectores %}
             <div class="col-1">
-                <a href="{% url 'nuevo_cert' %}" type="" class="btn btn-outline-secondary">
+                <a href={% url 'nueva_acta' %} type="" class="btn btn-outline-secondary">
                     <i class="bi bi-plus-lg"></i>
                 </a>
             </div>
@@ -54,34 +33,32 @@
         </div>
     </div>
     <hr size="5" color="grey" noshade>
+    </class>
     <div class="table-responsive">
         <table class="table table-hover">
             <thead class="table-success">
-                <th>Cod. Cert</th>
+                <th>Cod. Acta</th>
                 <th>Obra</th>
-                <th>Certificado N°</th>
-                <th>Periodo certificado</th>
-                <th>Cant. UVIs</th>
+                <th>Tipo de acta</th>
+                <th>Fecha apliación</th>
+                <th>Instrumento</th>
                 <th>Acciones</th>
             </thead>
             <tbody>
-                {% for certificado in entity %}
+                {% for acta in actas %}
                 <tr>
-                    <td class="fw-semibold">{{ certificado.codCert }}</td>
-                    <td>{{ certificado.obra.institucion.name }}</td>
-                    <td>{{ certificado.nro_cert }}</td>
-                    <td>{{ certificado.periodo }}</td>
-                    <td>{{ certificado.uvi }}</td>
+                    <td class="fw-semibold">{{ acta.codActa }}</td>
+                    <td>{{ acta.obra.institucion.name }}</td>
+                    <td>{{ acta.tipo.name }}</td>
+                    <td>{{ acta.fecha }}</td>
+                    <td>{{ acta.dispo }}</td>
                     <td>
                         <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">
                             <a type="button" class="btn btn-outline-info">Estado</a>
-                            <a type="button" class="btn btn-outline-info"
-                                href="{% url 'certificados_obra' certificado.obra_id %}">Obra</a>
                             {% if perms.mioc.view_inspectores %}
                             <a type="button" class="btn btn-outline-success"
-                                href="{% url 'editar_cert' certificado.pk %}">Editar</a>
-                            <a type="button" class="btn btn-outline-danger"
-                                href="{% url 'eliminar_cert' certificado.pk %}" >Eliminar</a>
+                                href="{% url 'editar_acta' acta.pk %}">Editar</a>
+                            <a type="button" class="btn btn-outline-danger" href="{% url 'eliminar_cert' acta.pk %}">Eliminar</a>
                             {% endif %}
                         </div>
                     </td>
@@ -90,7 +67,5 @@
             </tbody>
         </table>
     </div>
-    {% include 'paginator.html' %}
 </main>
-
 {% endblock %}
