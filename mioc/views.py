@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import  permission_required
 from django.core.paginator import Paginator
 from django.contrib import messages
 from . models import ActasObras, Certificados, Obras, EmpresaPoliza
-from . forms import ActasObrasFormEdit, CertificadoForm, CertificadoFormEdit, ObraFormAll, ObraFormActas, EmpresaPolizaForm, ActasObrasForm
+from . forms import ActasObrasFormEdit, CertificadoForm, CertificadoFormEdit, ObraFormAll, ObraFormActas, EmpresaPolizaForm, ActasObrasForm, PolizaForm
 
 
 # Create your views here.
@@ -33,28 +33,8 @@ def obras(request):
         ).distinct().order_by('institucion',)
     return render(request, 'obras.html', {'obras': obras, })
 
-def obra_detalle(request, pk):
-    if request.method == 'GET':
-        pedido = get_object_or_404(Obras, pk=pk)
-        form = ObraFormAll(instance=pedido)
-        form2 = ObraFormActas(instance=pedido)
-        return render(request, 'obra_detalle.html', {
-            'form': form,
-            'form2': form2,
-        })
-    else:
-        try:
-            pedido = get_object_or_404(Obras, pk=pk)
-            form2 = ObraFormActas(request.POST, instance=pedido)
-            form2.save()
-            return redirect(f'/obras/detalle/{pk}/')
-        except ValueError:
-            pedido = get_object_or_404(Obras, pk=pk)
-            form = ObraFormAll(instance=pedido)
-            return render(request, 'obra_detalle.html', {
-                'form': form,
-                'error': 'Error al validar pedido.'
-            })
+def obra_detalle(request):
+    return render(request, 'obra_detalle.html', {})
 
 def obra_poliza(request, pk):
     if request.method == 'GET':
@@ -328,3 +308,22 @@ def actas_obras_editar(request, pk):
                 'form': form,
                 'error': 'Error al editar acta'
             })
+
+def poliza_nueva(request):
+    if request.method == 'GET':
+        form = PolizaForm
+        return render(request, 'poliza_crear.html', {
+            'form': form
+        })
+    else:
+        form = PolizaForm(request.POST)
+        try:
+            if form.is_valid():
+                nueva_poliza = form.save(commit=False)
+                nueva_poliza.user = request.user
+                nueva_poliza.save()
+                messages.success(request, f'Nueva poliza creada!')
+                return redirect('poliza')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'poliza_crear.html', {'form': form, 'error': error_message})

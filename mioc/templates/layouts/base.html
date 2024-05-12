@@ -17,7 +17,7 @@
 
         <div class="container">
             <a class="navbar-brand" href="/">
-                <img src={% static 'image/mioc_bco.png' %} alt="Dpto Certificaciones" height="40">
+                <img src="{% static 'image/mioc_bco.png' %}" alt="Dpto Certificaciones" height="40">
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -26,11 +26,23 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     {% if user.is_authenticated %}
-                    {% if perms.mioc %}
-                    <li class="nav-item">
-                        <a href={% url 'obras' %} class="nav-link">Obras</a>
+                    <!-- Obras con UVI -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            Obras con UVI
+                        </a>
+                        <ul class="dropdown-menu">
+                            <!-- Obras -->
+                            <li><a class="dropdown-item" href="{% url 'obra_detalle' %}"><i class="bi bi-inboxes"></i>
+                                Detalle de Obras</a></li>
+                            <li><a class="dropdown-item" href="{% url 'obras' %}"><i class="bi bi-list-check"></i>
+                                Obras</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-plus"></i> Crear
+                                    Obra</a></li>
+                        </ul>
                     </li>
-                    {% endif %}
+                    <!-- Fondo Sustitución -->
                     {% if perms.mioc.view_empresapoliza %}
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
@@ -38,27 +50,59 @@
                             Fondo Sustitución
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href={% url 'aseguradora' %}><i class="bi bi-house-lock"></i>
+                            <li><a class="dropdown-item" href="{% url 'aseguradora' %}"><i class="bi bi-list-check"></i>
                                     Aseguradoras</a></li>
-                            <li><a class="dropdown-item" href={% url 'nueva' %}><i class="bi bi-plus-lg"></i> Crear
+                            <li><a class="dropdown-item" href="{% url 'nueva' %}"><i class="bi bi-building-add"></i> Crear
                                     Empresa</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-list-check"></i>
+                                Pólizas</a></li>
+                        <li><a class="dropdown-item" href="{% url 'nueva_poliza' %}"><i class="bi bi-file-earmark-plus"></i> Crear
+                                Póliza</a></li>
                         </ul>
                     </li>
                     {% endif %}
-
-                    <li class="nav-item">
-                        <a href={% url 'certificados' %} class="nav-link">Certificados</a>
+                    <!-- Carga de certificado -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            Carga de Certificado
+                        </a>
+                        <ul class="dropdown-menu">
+                            <!-- Certificados -->
+                            <li><a class="dropdown-item" href="{% url 'certificados' %}"><i class="bi bi-list-check"></i>
+                                Certificados</a></li>
+                            <li><a class="dropdown-item" href="{% url 'nuevo_cert' %}"><i class="bi bi-file-earmark-plus"></i> Crear
+                                    Certificado</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <!-- Actas -->
+                            <li><a class="dropdown-item" href="{% url 'actas' %}"><i class="bi bi-list-check"></i>
+                                Actas</a></li>
+                            <li><a class="dropdown-item" href="{% url 'nueva_acta' %}"><i class="bi bi-file-earmark-plus"></i> Crear
+                                    Acta</a></li>
+                        </ul>
+                    </li>
+                    <!-- Carga de certificado -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                            aria-expanded="false">
+                            Armado Expte. Pago
+                        </a>
+                        <ul class="dropdown-menu">
+                            <!-- Novedades -->
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-list-check"></i>
+                                Movimientos</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-plus"></i> Notificar
+                                    Movimiento</a></li>
+                        </ul>
                     </li>
                     <li class="nav-item">
-                        <a href={% url 'actas' %} class="nav-link">Actas</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href={% url 'logout' %} class="nav-link"><i class="bi bi-box-arrow-right"></i> Cerrar
+                        <a href="{% url 'logout' %}" class="nav-link"><i class="bi bi-box-arrow-right"></i> Cerrar
                             sesión</a>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a href={% url 'signin' %} class="nav-link"><i class="bi bi-box-arrow-in-right"></i> Inicia
+                        <a href="{% url 'signin' %}" class="nav-link"><i class="bi bi-box-arrow-in-right"></i> Inicia
                             sesión</a>
                     </li>
                     {% endif %}

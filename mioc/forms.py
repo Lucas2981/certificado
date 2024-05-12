@@ -1,5 +1,5 @@
 from django.forms import DateInput, ModelForm
-from .models import ActasObras, Obras,EmpresaPoliza, Certificados
+from .models import ActasObras, Obras,EmpresaPoliza, Certificados, Polizas
 from django import forms
 
 class ObraFormAll(ModelForm):
@@ -9,7 +9,7 @@ class ObraFormAll(ModelForm):
 class ObraFormActas(ModelForm):
     class Meta:
         model = Obras
-        fields = ['monto_contrato','fecha_cotrato','monto_uvi','valor_uvi_contrato','acta_fondo_reparo','poliza_sustitucion','empresa_poliza','tiene_poliza']
+        fields = ['monto_contrato','fecha_cotrato','monto_uvi','valor_uvi_contrato']
 class EmpresaPolizaForm(ModelForm):
     class Meta:
         model =  EmpresaPoliza     
@@ -38,5 +38,9 @@ class ActasObrasFormEdit(ModelForm):
         model = ActasObras
         fields = ['obra','tipo','fecha','orden','dispo']
 
+class PolizaForm(ModelForm):
+    class Meta:
+        model =  Polizas     
+        exclude = ['codPol','user']
 
 

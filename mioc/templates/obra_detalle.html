@@ -3,52 +3,53 @@
 {% load crispy_forms_tags %}
 
 <main class="container py-5">
-    <h1 class="display-3 text-center fw-medium">Detalle de Obra {{form.codObra}}</h1>
+    <h1 class="display-3 text-center fw-medium">Detalle de Obras</h1>
     <br>
-    <div class="row">
-        {% if request.method == 'GET' %}
-        {% if perms.mioc %}
-        <div class="col-lg-6">
-            <form action="" method="GET">
-                <fieldset disabled>
-                    <div class="col">
-                        <p class="form-label">{{ form.institucion|as_crispy_field }}</p>
-                        <p class="form-label">{{ form.expedientes|as_crispy_field }}</p>
-                        <p class="form-label">{{ form.nombre_obra|as_crispy_field }}</p>
-                        <p class="form-label">{{ form.empresa|as_crispy_field }}</p>
-                        <p class="form-label"> {{ form.inspector|as_crispy_field }} </p>
-                        <p class="form-label"> {{ form.inicio|as_crispy_field }} </p>
+    <div class="accordion accordion-flush" id="accordionFlushExample">
+        <!-- inicio item -->
+        <div class="accordion-item">
+            <h2 class="accordion-header">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
+                    Obra N°1
+                </button>
+            </h2>
+            <div id="flush-collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+                <div class="accordion-body">
+                    <div class="row">
+                        <div class="col-md-7">
+                            <p><b>Memoria:</b> Lorem ipsum dolor sit amet consectetur, adipisicing elit. Quasi, esse hic! Ipsum cupiditate officiis reprehenderit debitis quibusdam labore iure odit numquam excepturi, at eum mollitia atque ipsam maiores ducimus soluta laboriosam aspernatur quisquam doloribus optio deleniti in esse, aliquam a. Illo quidem nostrum, voluptatum tempore quod laborum odit fuga eum eos commodi suscipit accusantium doloribus assumenda totam et dolorum iusto nisi amet, labore vitae qui itaque delectus? Incidunt cumque rerum, nobis repellendus quisquam tempore, adipisci eius facilis illum, iure aspernatur. Ipsum porro distinctio vel sint ut eum at facilis cumque nobis, praesentium, ad deleniti? Accusamus nihil dolore dolorum harum magnam ipsa asperiores, dolor quo distinctio aspernatur eum iusto consequuntur dolorem possimus odit voluptatem voluptate repellat quisquam, quibusdam cumque minus voluptates dolores officiis rerum? Dolores nemo eligendi, error molestias voluptas eveniet. Corporis, aliquam? Explicabo, voluptate? Incidunt, eum possimus! Labore qui, similique iure dignissimos, obcaecati corporis ducimus harum itaque recusandae ipsa maiores?</p>
+                        </div>
+                        <div class="col-md-5">
+                            <figure class="figure">
+                                <img src="https://inforama.com.ar/wp-content/uploads/2023/12/La-obra-publica-realizo-una-significativa-contribucion-al-desarrollo-socioeconomico-y-generacion-de-empleo-en-Catamarca-752x423.jpg"
+                                    class="figure-img img-fluid rounded" alt="MIOC">
+                                <figcaption class="figure-caption">Puente 3era etapa.</figcaption>
+                            </figure>
+                            <p class="text-center"><span class="badge text-bg-primary">Avance esperado</span><span
+                                    class="badge text-bg-success">Avance real</span></p>
+                            <div class="progress" role="progressbar" aria-label="Primary example" aria-valuenow="45"
+                                aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress-bar bg-primary" style="width: 45%">45%</div>
+                            </div>
+                            <br>
+                            <div class="progress" role="progressbar" aria-label="Success example" aria-valuenow="50"
+                                aria-valuemin="0" aria-valuemax="100">
+                                <div class="progress-bar bg-success" style="width: 50%">50%</div>
+                            </div>
+                        </div>
                     </div>
-                </fieldset>
-            </form>
-        </div>
-        <div class="col-lg-6">
-            <form action="" method="POST">
-                {% csrf_token %}
-                <div class="col">
-                    <!-- Vista Vanina -->
-                    {% if perms.mioc.view_empresapoliza %}
-                    <p class="form-label"> {{ form2.tiene_poliza|as_crispy_field }} </p>
-                    {% if form2.tiene_poliza.value == True %}
-                    <p class="form-label"> {{ form2.acta_fondo_reparo|as_crispy_field }} </p>
-                    <p class="form-label"> {{ form2.poliza_sustitucion|as_crispy_field }} </p>
-                    <p class="form-label"> {{ form2.empresa_poliza|as_crispy_field }} </p>
-                    {% endif %}
-                    {% endif %}
-                    <!-- Vista Eber -->
+                    <li>comentario 1</li>
+                    <li>comentario 2</li>
+                    <br>
+
                 </div>
-                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                    <button type='submit' class="btn btn-primary"> Actualizar</button>
-                    <a href={% url 'obras' %} class="btn btn-secondary">Volver</a>
-                </div>
-            </form>
-            <div class="d-flex justify-content-end mt-3">
             </div>
         </div>
-        {% endif %}
-        {% endif %}
+        <!-- final item -->
 
     </div>
+
     {{ error }}
 </main>
 {% endblock %}

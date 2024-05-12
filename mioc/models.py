@@ -197,12 +197,6 @@ class Obras(models.Model):
     fecha_cotrato = models.DateField(verbose_name='Fecha de contrato',blank=True,null=True)
     monto_uvi = models.FloatField(verbose_name='Monto de contrato (UVIS)',blank=True,null=True)
     valor_uvi_contrato = models.FloatField(verbose_name='Valor UVI contrato',blank=True,null=True)
-    
-    # Check Vanina
-    tiene_poliza = models.BooleanField(null=True,blank=True, verbose_name='Presenta póliza de sustitución?')
-    acta_fondo_reparo = models.CharField(max_length=30, blank=True,null=True, verbose_name='Acta póliza sustitución Fondo de Reparo')
-    poliza_sustitucion = models.IntegerField(null=True,blank=True,verbose_name='N° Póliza Fondo de Reparo')
-    empresa_poliza = models.ForeignKey(EmpresaPoliza, on_delete=models.CASCADE, blank=True, null=True,verbose_name='Empresa aseguradora')
 
     class Meta:
         verbose_name = 'Obra'
@@ -220,6 +214,30 @@ class Obras(models.Model):
         except Uvis.DoesNotExist:
             pass
         super().save(*args, **kwargs)
+
+class Polizas(models.Model):
+    codPol = models.CharField(max_length=200, verbose_name='Cod. Poliza', editable=False, unique=True, null=True)
+    obra = models.ForeignKey(Obras, on_delete=models.CASCADE, verbose_name='Obra')
+    tiene_poliza = models.BooleanField(null=True,blank=True, verbose_name='Presenta póliza de sustitución?')
+    acta_fondo_reparo = models.CharField(max_length=30, blank=True,null=True, verbose_name='Póliza de sustitución Fondo de Reparo')
+    poliza_sustitucion = models.IntegerField(null=True,blank=True,verbose_name='N° Póliza Fondo de Reparo')
+    empresa_poliza = models.ForeignKey(EmpresaPoliza, on_delete=models.CASCADE, blank=True, null=True,verbose_name='Empresa aseguradora')
+    monto_asegurado = models.FloatField(null=True,blank=True,verbose_name='Monto asegurado')
+    orden = models.PositiveIntegerField(verbose_name='Nro Orden', default=1)
+    obervacion = models.TextField(null=True,blank=True,verbose_name='Observación')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Creada por')
+    class Meta:
+        verbose_name = 'Poliza'
+        verbose_name_plural = 'Polizas'
+        ordering = ['obra']
+    def clean(self):
+        if self.pk is None: 
+            pass
+    def save(self, *args, **kwargs):
+        self.codPol = f'{str(self.obra.codObra)}P{str(self.orden)}'
+        if ActasObras.objects.filter(codPol=self.codPol).exclude(pk=self.pk).exists():
+            raise ValidationError(f'Esta obra ya cuenta con la poliza N° {self.orden}')        
+        super().save(*args, **kwargs) 
 
 class Rubros(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
