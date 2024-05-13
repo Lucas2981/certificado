@@ -45,7 +45,7 @@
                 <th>Acciones</th>
             </thead>
             <tbody>
-                {% for obra in obras %}
+                {% for obra in entity %}
                 <tr>
                     </td>
                     <td class="fw-semibold">{{obra.codObra}}</td>
@@ -56,9 +56,8 @@
                     <td>{{obra.inspector.fullname}}</td>
                     <td>
                         <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">
-                            <a type="button" class="btn btn-outline-info" href="{% url 'obra_detalle' obra.id %}">Detalle</a>
+                            <a type="button" class="btn btn-outline-info" href="{% url 'obra_detalle' %}">Detalle</a>
                             <a type="button" class="btn btn-outline-info" href="{% url 'certificados_obra' obra.id %}">Actas</a>
-                            <a type="button" class="btn btn-outline-info" href="{% url 'obra_poliza' obra.id %}">Poliza</a>
                             <a type="button" class="btn btn-outline-info" href="{% url 'certificados_obra' obra.pk %}">Certificados</a>
                         </div>
                     </td>
@@ -67,6 +66,7 @@
             </tbody>
         </table>
     </div>
+    {% include 'paginator.html' %}
     {{ perms.mioc }}
 </main>
 

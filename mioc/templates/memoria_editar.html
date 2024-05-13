@@ -1,0 +1,23 @@
+{% extends 'layouts/base.html' %}
+{% block content %}
+{% load crispy_forms_tags %}
+<main class="container">
+    <div class="row">
+        <div class="col-md-4 offset-md-4 mt-5">
+            <form method="POST" class="card card-body" enctype="multipart/form-data">
+                <h1><i class="bi bi-file-earmark-plus"></i> Editar Memoria</h1>
+                {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    {{error}}
+                </div>
+                {% endif %}
+                {% csrf_token %}
+                {{form|crispy }}
+                <button class="btn btn-primary">
+                    Guardar
+                </button>
+            </form>
+        </div>
+    </div>
+</main>
+{% endblock %}

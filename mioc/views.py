@@ -5,8 +5,8 @@ from django.db.models import Q,Sum
 from django.contrib.auth.decorators import  permission_required
 from django.core.paginator import Paginator
 from django.contrib import messages
-from . models import ActasObras, Certificados, Obras, EmpresaPoliza
-from . forms import ActasObrasFormEdit, CertificadoForm, CertificadoFormEdit, ObraFormAll, ObraFormActas, EmpresaPolizaForm, ActasObrasForm, PolizaForm
+from . models import ActasObras, Certificados, Memorias, Obras, EmpresaPoliza, Polizas
+from . forms import ActasObrasFormEdit, CertificadoForm, CertificadoFormEdit, MemoriaForm, ObraFormAll, ObraFormActas, EmpresaPolizaForm, ActasObrasForm, PolizaForm
 
 
 # Create your views here.
@@ -19,10 +19,15 @@ def index(request):
         'titulo': saludo,
         'creador': creador,
     })
-# @permission_required('mioc.view_uvis')
 
-def obras(request):
+def lista_obras(request):
     obras = Obras.objects.all()
+    page = request.GET.get('page',1)
+    try:
+        paginator = Paginator(obras,5)
+        obras = paginator.page(page)
+    except:
+        raise Http404
     queryset = request.GET.get('buscar')
     if queryset:
         obras = Obras.objects.filter(
@@ -31,34 +36,11 @@ def obras(request):
             Q(inspector__fullname__icontains=queryset) |
             Q(empresa__name__icontains=queryset),
         ).distinct().order_by('institucion',)
-    return render(request, 'obras.html', {'obras': obras, })
+    return render(request, 'obras.html', {'entity': obras, 'paginator':paginator })
 
-def obra_detalle(request):
-    return render(request, 'obra_detalle.html', {})
-
-def obra_poliza(request, pk):
-    if request.method == 'GET':
-        pedido = get_object_or_404(Obras, pk=pk)
-        form = ObraFormAll(instance=pedido)
-        form2 = ObraFormActas(instance=pedido)
-        return render(request, 'obra_poliza.html', {
-            'form': form,
-            'form2': form2,
-        })
-    else:
-        try:
-            pedido = get_object_or_404(Obras, pk=pk)
-            form2 = ObraFormActas(request.POST, instance=pedido)
-            form2.save()
-            messages.success(request, f'Poliza de {pedido.institucion} validada!')
-            return redirect(f'/obras/poliza/{pk}/')
-        except ValueError:
-            pedido = get_object_or_404(Obras, pk=pk)
-            form = ObraFormAll(instance=pedido)
-            return render(request, 'obra_poliza.html', {
-                'form': form,
-                'error': 'Error al validar pedido.'
-            })
+def detalle_obra(request):
+    obra = Memorias.objects.all()
+    return render(request, 'obra_detalle.html', {'obra':obra})
 
 def create_empresa(request):
     if request.method == 'GET':
@@ -113,7 +95,7 @@ def lista_empresa(request):
         ).distinct().order_by('empresa',)
     return render(request, 'empresa_lista.html', {'entity': empresa, 'paginator':paginator })
 
-def certificados_lista(request):
+def lista_certificados(request):
     certificados = Certificados.objects.all()
     page = request.GET.get('page',1)
     try:
@@ -131,7 +113,7 @@ def certificados_lista(request):
         ).distinct().order_by('nro_cert',)
     return render(request, 'certificado_lista.html', {'entity': certificados, 'paginator':paginator})
 
-def certificados_lista_obra(request, obra_id):
+def lista_certificados_obra(request, obra_id):
     certificados = Certificados.objects.filter(obra_id=obra_id).order_by('nro_cert')
     try:
         obra = certificados.values('obra__institucion__name').annotate(cantidad=Sum('nro_cert'))
@@ -161,7 +143,7 @@ def certificados_lista_obra(request, obra_id):
     except Exception as e:
         return render(request, 'obras.html', {'error': 'Ocurrió un error inesperado.'})
 
-def create_certificado(request):
+def crear_certificado(request):
     if request.method == 'GET':
         return render(request, 'certificado_crear.html', {
             'form': CertificadoForm
@@ -183,7 +165,7 @@ def create_certificado(request):
             # Handle any other exceptions that may occur
             return render(request, 'certificado_crear.html', {'form': form, 'error': 'Ocurrió un error inesperado.'})
 
-def edit_certificado(request, pk):
+def editar_certificado(request, pk):
     if request.method == 'GET':
         certif = get_object_or_404(Certificados, pk=pk)
         form = CertificadoFormEdit(instance=certif)
@@ -210,13 +192,13 @@ def edit_certificado(request, pk):
                 'error': 'Error al editar certificado'
             })
         
-def delete_certificado(request, pk):
+def borrar_certificado(request, pk):
     certificado = get_object_or_404(Certificados, pk=pk)
     certificado.delete()
     messages.success(request, f'Certificado {certificado.nro_cert} eliminado!')
     return redirect('certificados')
 
-def actas_lista(request):
+def lista_actas(request):
     actas = ActasObras.objects.all()
     page = request.GET.get('page',1)
     try:
@@ -234,7 +216,7 @@ def actas_lista(request):
         ).distinct().order_by('nro_cert',)
     return render(request, 'actas_lista.html', {'entity': actas, 'paginator':paginator})
 
-def actas_lista_obras(request,obra_id):
+def lista_actas_obra(request,obra_id):
     actas = ActasObras.objects.filter(obra_id=obra_id).order_by('obra__institucion__name')
     try:
         obra = actas.values('obra__institucion__name').annotate(cantidad=Sum('id'))
@@ -264,7 +246,7 @@ def actas_lista_obras(request,obra_id):
     except Exception as e:
         return render(request, 'actas.html', {'error': 'Ocurrió un error inesperado.'})
 
-def actas_obras(request):
+def crear_acta(request):
     if request.method == 'GET':
         return render(request, 'actas_obras.html', {
             'form': ActasObrasForm
@@ -287,7 +269,7 @@ def actas_obras(request):
             return render(request, 'actas_obras.html', {'form': form, 'error': 'Ocurrió un error inesperado.'})
     return render(request, 'actas_obras.html')
 
-def actas_obras_editar(request, pk):
+def editar_acta(request, pk):
     acta = get_object_or_404(ActasObras, pk=pk)
     if request.method == 'GET':
         form = ActasObrasFormEdit(instance=acta)
@@ -309,7 +291,7 @@ def actas_obras_editar(request, pk):
                 'error': 'Error al editar acta'
             })
 
-def poliza_nueva(request):
+def crear_poliza(request):
     if request.method == 'GET':
         form = PolizaForm
         return render(request, 'poliza_crear.html', {
@@ -327,3 +309,91 @@ def poliza_nueva(request):
         except ValidationError as e:
             error_message = e.messages[0]
             return render(request, 'poliza_crear.html', {'form': form, 'error': error_message})
+
+def editar_poliza(request, pk):
+    poliza = get_object_or_404(Polizas, pk=pk)
+    if request.method == 'GET':
+        form = PolizaForm(instance=poliza)
+        return render(request, 'poliza_editar.html', {
+            'form': form
+        })
+    else:
+        try:
+            poliza = get_object_or_404(Polizas, pk=pk)
+            form = PolizaForm(request.POST, instance=poliza)
+            form.save()
+            messages.success(request, f'Registro editado!')
+            return redirect('poliza')
+        except ValueError:
+            poliza = get_object_or_404(Polizas, pk=pk)
+            form = PolizaForm(instance=poliza)
+            return render(request, 'poliza_editar.html', {
+                'form': form,
+                'error': 'Error al editar poliza'
+            })
+
+def borrar_poliza(request, pk):
+    poliza = get_object_or_404(Polizas, pk=pk)
+    poliza.delete()
+    messages.success(request, f'Poliza {poliza.empresa_poliza} eliminada!')
+    return redirect('poliza')
+
+def lista_poliza(request):
+    poliza = Polizas.objects.all()
+    page = request.GET.get('page',1)
+    try:
+        paginator = Paginator(poliza,5)
+        poliza = paginator.page(page)
+    except:
+        raise Http404
+    queryset = request.GET.get('buscar')
+    if queryset:
+        poliza = Polizas.objects.filter(
+            Q(obra__institucion__name__icontains=queryset) |
+            Q(obra__inspector__fullname__icontains=queryset) |
+            Q(empresa_poliza__empresa__icontains=queryset) |
+            Q(obervacion__icontains=queryset),
+        ).distinct().order_by('id',)
+    return render(request, 'poliza_lista.html', {'entity': poliza, 'paginator':paginator})
+
+def crear_memoria(request):
+    if request.method == 'GET':
+        form = MemoriaForm
+        return render(request, 'poliza_crear.html', {
+            'form': form
+        })
+    else:
+        form = MemoriaForm(request.POST)
+        try:
+            if form.is_valid():
+                memoria = form.save(commit=False)
+                memoria.user = request.user
+                memoria.save()
+                messages.success(request, f'Nueva memoria creada!')
+                return redirect('poliza')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'memoria_crear.html', {'form': form, 'error': error_message})
+    return render(request, 'memoria.html')
+
+def editar_memoria(request, pk):
+    memoria = get_object_or_404(Memorias, pk=pk)
+    if request.method == 'GET':
+        form = MemoriaForm(instance=memoria)
+        return render(request, 'memoria_editar.html', {
+            'form': form
+        })
+    else:
+        try:
+            memoria = get_object_or_404(Memorias, pk=pk)
+            form = MemoriaForm(request.POST, instance=memoria)
+            form.save()
+            messages.success(request, f'Registro editado!')
+            return redirect('poliza')
+        except ValueError:
+            memoria = get_object_or_404(Memorias, pk=pk)
+            form = MemoriaForm(instance=memoria)
+            return render(request, 'memoria_editar.html', {
+                'form': form,
+                'error': 'Error al editar memoria'
+            })

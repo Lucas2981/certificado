@@ -7,12 +7,15 @@ import requests
 import pandas as pd
 import os
 from dotenv import load_dotenv
+import google.generativeai as genai
 
 load_dotenv()
 token = os.environ.get('API_TOKEN')
 web = "https://api.estadisticasbcra.com/"
 headers = {"Authorization": token}
 
+load_dotenv()
+token = os.environ.get('API_TOKEN_2')
 
 class Location(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
@@ -225,7 +228,7 @@ class Polizas(models.Model):
     monto_asegurado = models.FloatField(null=True,blank=True,verbose_name='Monto asegurado')
     orden = models.PositiveIntegerField(verbose_name='Nro Orden', default=1)
     obervacion = models.TextField(null=True,blank=True,verbose_name='Observación')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Creada por')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Creada por',)
     class Meta:
         verbose_name = 'Poliza'
         verbose_name_plural = 'Polizas'
@@ -235,7 +238,7 @@ class Polizas(models.Model):
             pass
     def save(self, *args, **kwargs):
         self.codPol = f'{str(self.obra.codObra)}P{str(self.orden)}'
-        if ActasObras.objects.filter(codPol=self.codPol).exclude(pk=self.pk).exists():
+        if Polizas.objects.filter(codPol=self.codPol).exclude(pk=self.pk).exists():
             raise ValidationError(f'Esta obra ya cuenta con la poliza N° {self.orden}')        
         super().save(*args, **kwargs) 
 
@@ -433,4 +436,33 @@ class ActasObras(models.Model):
         if ActasObras.objects.filter(codActa=self.codActa).exclude(pk=self.pk).exists():
             raise ValidationError(f'Esta obra ya cuenta con acta {self.tipo.name} N° {self.orden}')        
         super().save(*args, **kwargs) 
-    
+
+class Memorias(models.Model):
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    codMem = models.CharField(max_length=200, verbose_name='Cod. Memoria', editable=False, unique=True)
+    obra = models.ForeignKey(Obras, on_delete=models.CASCADE, verbose_name='Obra')
+    memoria = models.TextField(verbose_name='Memoria', blank=True, null=True)
+    resumen = models.TextField(verbose_name='Resumen', blank=True, null=True)
+    imagen = models.ImageField(upload_to='static/images',verbose_name='Imagen', blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Cargado por',default=1)
+    class Meta:
+        verbose_name = 'Memoria'
+        verbose_name_plural = 'Memorias'
+        ordering = ['obra']
+    def clean(self):
+        if self.pk is None: 
+            pass
+    def save(self, *args, **kwargs):
+        self.codMem = f'{str(self.obra.codObra)}Mem'
+        if self.memoria:
+            genai.configure(api_key=token)
+            model = genai.GenerativeModel(model_name="gemini-pro")
+
+            consulta = f'''Objetivo: Generar un resumen de {self.memoria}, mejorando el argumento y redacción ya que sera la descripcion de una obra,y no supere los 4500 caracteres.'''
+            response = model.generate_content(consulta)
+            self.resumen = response.text.replace("**", "")
+        else:
+            self.resumen = ""
+        if Memorias.objects.filter(codMem=self.codMem).exclude(pk=self.pk).exists():
+            raise ValidationError('Esta obra ya cuenta con una memoria')        
+        super().save(*args, **kwargs)

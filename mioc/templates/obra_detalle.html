@@ -7,22 +7,23 @@
     <br>
     <div class="accordion accordion-flush" id="accordionFlushExample">
         <!-- inicio item -->
+        {% for x in obra %}
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
-                    Obra N°1
+                    data-bs-target="#flush-collapse{{ x.id }}" aria-expanded="false" aria-controls="flush-collapse{{ x.id }}">
+                    {{ x.obra.institucion.name }}
                 </button>
             </h2>
-            <div id="flush-collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+            <div id="flush-collapse{{ x.id }}" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
                 <div class="accordion-body">
                     <div class="row">
                         <div class="col-md-7">
-                            <p><b>Memoria:</b> Lorem ipsum dolor sit amet consectetur, adipisicing elit. Quasi, esse hic! Ipsum cupiditate officiis reprehenderit debitis quibusdam labore iure odit numquam excepturi, at eum mollitia atque ipsam maiores ducimus soluta laboriosam aspernatur quisquam doloribus optio deleniti in esse, aliquam a. Illo quidem nostrum, voluptatum tempore quod laborum odit fuga eum eos commodi suscipit accusantium doloribus assumenda totam et dolorum iusto nisi amet, labore vitae qui itaque delectus? Incidunt cumque rerum, nobis repellendus quisquam tempore, adipisci eius facilis illum, iure aspernatur. Ipsum porro distinctio vel sint ut eum at facilis cumque nobis, praesentium, ad deleniti? Accusamus nihil dolore dolorum harum magnam ipsa asperiores, dolor quo distinctio aspernatur eum iusto consequuntur dolorem possimus odit voluptatem voluptate repellat quisquam, quibusdam cumque minus voluptates dolores officiis rerum? Dolores nemo eligendi, error molestias voluptas eveniet. Corporis, aliquam? Explicabo, voluptate? Incidunt, eum possimus! Labore qui, similique iure dignissimos, obcaecati corporis ducimus harum itaque recusandae ipsa maiores?</p>
+                            <p>{{ x.resumen }}</p>
                         </div>
                         <div class="col-md-5">
                             <figure class="figure">
-                                <img src="https://inforama.com.ar/wp-content/uploads/2023/12/La-obra-publica-realizo-una-significativa-contribucion-al-desarrollo-socioeconomico-y-generacion-de-empleo-en-Catamarca-752x423.jpg"
+                                <img src= "{{ x.imagen }}"
                                     class="figure-img img-fluid rounded" alt="MIOC">
                                 <figcaption class="figure-caption">Puente 3era etapa.</figcaption>
                             </figure>
@@ -39,17 +40,17 @@
                             </div>
                         </div>
                     </div>
-                    <li>comentario 1</li>
-                    <li>comentario 2</li>
+                    <ul>
+                        <li>comentario 1</li>
+                        <li>comentario 2</li>
+                    </ul>
                     <br>
-
                 </div>
             </div>
         </div>
+        {% endfor %}
         <!-- final item -->
-
     </div>
-
     {{ error }}
 </main>
 {% endblock %}
