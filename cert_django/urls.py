@@ -21,7 +21,7 @@ from django.urls import path, include
 urlpatterns = [
     path("admin/", admin.site.urls, name="admin"),
     path('',include('sesion.urls')),
-    path('', include('mioc.urls')),
+    path('soc/', include('mioc.urls')),
 ]
 
 if settings.DEBUG:

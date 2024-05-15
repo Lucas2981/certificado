@@ -36,7 +36,7 @@ def lista_obras(request):
             Q(inspector__fullname__icontains=queryset) |
             Q(empresa__name__icontains=queryset),
         ).distinct().order_by('institucion',)
-    return render(request, 'obras.html', {'entity': obras, 'paginator':paginator })
+    return render(request, 'obras_lista.html', {'entity': obras, 'paginator':paginator })
 
 def detalle_obra(request):
     obra = Memorias.objects.all()
@@ -139,9 +139,9 @@ def lista_certificados_obra(request, obra_id):
         })
     except ValidationError as e:
         error_message = e.messages[0]
-        return render(request, 'obras.html', {'error': error_message})
+        return render(request, 'obras_lista.html', {'error': error_message})
     except Exception as e:
-        return render(request, 'obras.html', {'error': 'Ocurrió un error inesperado.'})
+        return render(request, 'obras_lista.html', {'error': 'Ocurrió un error inesperado.'})
 
 def crear_certificado(request):
     if request.method == 'GET':
@@ -396,4 +396,46 @@ def editar_memoria(request, pk):
             return render(request, 'memoria_editar.html', {
                 'form': form,
                 'error': 'Error al editar memoria'
+            })
+
+def crear_obra(request):
+    if request.method == 'GET':
+        form = ObraFormAll
+        return render(request, 'obra_crear.html', {
+            'form': form
+        })
+    else:
+        form = ObraFormAll(request.POST)
+        try:
+            if form.is_valid():
+                obra = form.save(commit=False)
+                obra.user = request.user
+                obra.save()
+                messages.success(request, f'Nueva obra creada!')
+                return redirect('obras')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'obra_crear.html', {'form': form, 'error': error_message})
+    return render(request, 'obra.html')
+
+def editar_obra(request, pk):
+    obra = get_object_or_404(Obras, pk=pk)
+    if request.method == 'GET':
+        form = ObraFormAll(instance=obra)
+        return render(request, 'obra_editar.html', {
+            'form': form
+        })
+    else:
+        try:
+            obra = get_object_or_404(Obras, pk=pk)
+            form = ObraFormAll(request.POST, instance=obra)
+            form.save()
+            messages.success(request, f'Registro editado!')
+            return redirect('obras')
+        except ValueError:
+            obra = get_object_or_404(Obras, pk=pk)
+            form = ObraFormAll(instance=obra)
+            return render(request, 'obra_editar.html', {
+                'form': form,
+                'error': 'Error al editar obra'
             })

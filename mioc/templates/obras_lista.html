@@ -1,6 +1,6 @@
 {% extends 'layouts/base.html' %}
 {% block content %}
-
+{% block title %}Listado de Obra{% endblock %}
 <main class="container py-5">
     <h1 class="display-3 text-center fw-medium">Listado de Obras</h1>
     <br>
@@ -59,6 +59,7 @@
                             <a type="button" class="btn btn-outline-info" href="{% url 'obra_detalle' %}">Detalle</a>
                             <a type="button" class="btn btn-outline-info" href="{% url 'certificados_obra' obra.id %}">Actas</a>
                             <a type="button" class="btn btn-outline-info" href="{% url 'certificados_obra' obra.pk %}">Certificados</a>
+                            <a type="button" class="btn btn-outline-success" href="{% url 'editar_obra' obra.id %}">Editar</a>
                         </div>
                     </td>
                 </tr>

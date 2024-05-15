@@ -8,6 +8,8 @@ urlpatterns = [
     # obras
     path('obras/',login_required(views.lista_obras), name='obras'),
     path('obras/detalle/',login_required(views.detalle_obra), name='obra_detalle'),
+    path('obras/nueva',login_required(views.crear_obra), name='nueva_obra'),
+    path('obras/<int:pk>/editar/',login_required(views.editar_obra), name='editar_obra'),
     # certificados
     path('obras/certificados/',login_required(views.lista_certificados), name='certificados'),
     path('obras/certificados/<int:obra_id>/',login_required(views.lista_certificados_obra), name='certificados_obra'),
