@@ -19,6 +19,8 @@ urlpatterns = [
     # memorias
     path('obras/memoria/nueva',login_required(views.crear_memoria), name='nueva_memoria'),
     path('obras/memoria/<int:pk>/editar/',login_required(views.editar_memoria), name='editar_memoria'),
+    path('obras/memoria/<int:pk>/eliminar/',login_required(views.borrar_memoria), name='eliminar_memoria'),
+    path('obras/memoria/',login_required(views.lista_memoria), name='memorias'),
     # actas
     path('obras/certificados/actas/<int:obra_id>/',login_required(views.lista_actas_obra), name='actas_obra'),
     path('obras/certificados/actas/',login_required(views.lista_actas), name='actas'),
@@ -33,4 +35,10 @@ urlpatterns = [
     path('aseguradora/poliza/<int:pk>/editar/',login_required(views.editar_poliza), name='editar_poliza'),
     path('aseguradora/poliza/<int:pk>/elimiar/',login_required(views.borrar_poliza), name='eliminar_poliza'),
     path('aseguradora/poliza/',login_required(views.lista_poliza), name='poliza'),
+    # dispo inspectores
+    path('obras/dispo/nueva',login_required(views.crear_dispo_inspector), name='nueva_dispo_inspe'),
+    path('obras/dispo/<int:pk>/editar/',login_required(views.editar_dispo_inspector), name='editar_dispo_inspe'),
+    path('obras/dispo/<int:pk>/elimiar/',login_required(views.borrar_dispo_inspector), name='eliminar_dispo_inspe'),
+    path('obras/dispo/',login_required(views.lista_dispo_inspector), name='dispo_inspe'),
+    path('obras/dispo/<int:obra_id>/',login_required(views.lista_dispo_inspector_obra), name='dispo_inspe_obra'),
 ]

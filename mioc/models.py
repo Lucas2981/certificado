@@ -80,15 +80,11 @@ class Estados(models.Model):
 
 
 class Instituciones(models.Model):
-    id = models.BigAutoField(
-        auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
     name = models.CharField(max_length=200, verbose_name='Institución')
-    clase = models.ForeignKey(
-        Clases, on_delete=models.CASCADE, verbose_name='Tipo de Institución')
-    location = models.ForeignKey(
-        Location, on_delete=models.CASCADE, verbose_name='Ubicación')
-    geometry = models.CharField(
-        max_length=150, blank=True, null=True, verbose_name='Georeferencia')
+    clase = models.ForeignKey(Clases, on_delete=models.CASCADE, verbose_name='Tipo de Institución')
+    location = models.ForeignKey(Location, on_delete=models.CASCADE, verbose_name='Ubicación')
+    geometry = models.CharField(max_length=150, blank=True, null=True, verbose_name='Georeferencia')
 
     class Meta:
         verbose_name = 'Institución'
@@ -230,33 +226,22 @@ class EmpresaPoliza(models.Model):
 
 
 class Obras(models.Model):
-    id = models.BigAutoField(
-        auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
     expedientes = models.CharField(max_length=30, verbose_name='Expediente')
-    codObra = models.CharField(
-        max_length=200, verbose_name='Cod. Obra', editable=False, blank=True, null=True)
-    institucion = models.ForeignKey(
-        Instituciones, on_delete=models.CASCADE, verbose_name='Institución')
-    inspector = models.ForeignKey(
-        Inspectores, on_delete=models.CASCADE, verbose_name='Inspector')
-    empresa = models.ForeignKey(
-        Empresas, on_delete=models.CASCADE, verbose_name='Empresa', blank=True, null=True)
+    codObra = models.CharField(max_length=200, verbose_name='Cod. Obra', editable=False, blank=True, null=True)
+    institucion = models.ForeignKey(Instituciones, on_delete=models.CASCADE, verbose_name='Institución')
+    # inspector = models.ForeignKey(
+    #     Inspectores, on_delete=models.CASCADE, verbose_name='Inspector')
+    empresa = models.ForeignKey(Empresas, on_delete=models.CASCADE, verbose_name='Empresa', blank=True, null=True)
     inicio = models.DateField(verbose_name='Fecha de inicio')
-    uvi = models.ForeignKey(Uvis, on_delete=models.CASCADE,
-                            verbose_name='Uvi', editable=False, blank=True, null=True)
+    uvi = models.ForeignKey(Uvis, on_delete=models.CASCADE,verbose_name='Uvi', editable=False, blank=True, null=True)
     plazo = models.IntegerField(verbose_name='Plazo Contractual (días)')
-    vencimiento_contractual = models.DateField(
-        verbose_name='Vencimiento Contractual', blank=True, null=True)
-    nombre_obra = models.CharField(
-        max_length=250, verbose_name='Carátula Obra', null=True, blank=True)
-    monto_contrato = models.FloatField(
-        verbose_name='Monto de contrato ($)', blank=True, null=True)
-    fecha_cotrato = models.DateField(
-        verbose_name='Fecha de contrato', blank=True, null=True)
-    monto_uvi = models.FloatField(
-        verbose_name='Monto de contrato (UVIS)', blank=True, null=True)
-    valor_uvi_contrato = models.FloatField(
-        verbose_name='Valor UVI contrato', blank=True, null=True)
+    vencimiento_contractual = models.DateField(verbose_name='Vencimiento Contractual', blank=True, null=True)
+    nombre_obra = models.CharField(max_length=250, verbose_name='Carátula Obra', null=True, blank=True)
+    monto_contrato = models.FloatField(verbose_name='Monto de contrato ($)', blank=True, null=True)
+    fecha_cotrato = models.DateField(verbose_name='Fecha de contrato', blank=True, null=True)
+    monto_uvi = models.FloatField(verbose_name='Monto de contrato (UVIS)', blank=True, null=True)
+    valor_uvi_contrato = models.FloatField(verbose_name='Valor UVI contrato', blank=True, null=True)
 
     class Meta:
         verbose_name = 'Obra'
@@ -264,7 +249,7 @@ class Obras(models.Model):
         ordering = ['institucion']
 
     def __str__(self):
-        return self.institucion.name
+        return f'{self.institucion.name} - {self.codObra}'
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)  # Save the object first
@@ -596,14 +581,24 @@ class Memorias(models.Model):
     def clean(self):
         if self.pk is None:
             pass
-
+    
+    def __str__(self):
+        return f'{self.obra.institucion} {self.obra.codObra}'
     def save(self, *args, **kwargs):
         self.codMem = f'{str(self.obra.codObra)}Mem'
         if self.memoria:
             genai.configure(api_key=token)
             model = genai.GenerativeModel(model_name="gemini-pro")
 
-            consulta = f'''Objetivo: Generar un resumen de {self.memoria}, mejorando el argumento y redacción ya que sera la descripcion de una obra,y no supere los 4500 caracteres.'''
+            consulta = f'''Objetivo: del texto: {self.memoria}, identificar los puntos clave para mejorando el argumento y redacción, ya que será la descripcion del artículo, y no debe superar los 2500 caracteres
+            Introduccion:
+            Contextualización del tema o ámbito en el que se enmarca la obra, presentación del problema principal que aborda la obra, importancia o relevancia del problema.
+            Problematica:
+            Descripción detallada del problema, incluyendo causas, consecuencias y posibles impactos. Análisis de las diferentes perspectivas o enfoques sobre el problema. Evidencia o datos que sustentan la problemática.
+            Solucion planteada:
+            Descripción detallada de la solución propuesta para acondicionar la obra, incluyendo fundamentos o argumentos que la sustentan, posibles beneficios o ventajas de la solución y recursos necesarios para su implementación.
+            Resumen:
+            Resumen de los puntos clave del informe. Reflexión sobre la viabilidad y potencial impacto de la solución propuesta. Aporte o valor de la obra para abordar el problema.'''
             response = model.generate_content(consulta)
             self.resumen = response.text.replace("**", "")
         else:
@@ -611,3 +606,26 @@ class Memorias(models.Model):
         if Memorias.objects.filter(codMem=self.codMem).exclude(pk=self.pk).exists():
             raise ValidationError('Esta obra ya cuenta con una memoria')
         super().save(*args, **kwargs)
+
+class DispoInspector(models.Model):
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    dispo = models.CharField(max_length=30, verbose_name='Disposición')
+    obra = models.ForeignKey(Obras, on_delete=models.CASCADE, verbose_name='Obra')
+    inspector = models.ForeignKey(Inspectores, on_delete=models.CASCADE, verbose_name='Inspector')
+    fecha = models.DateField(verbose_name='Fecha')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Cargado por', default=1)
+    observacion = models.TextField(verbose_name='Observación', blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'Disp Inspector'
+        verbose_name_plural = 'Disp Inspectores'
+        ordering = ['inspector']
+    def __str__(self):
+        return f'{self.dispo} - {self.inspector}'
+    def save(self, *args, **kwargs):
+        self.dispo = self.dispo.upper()
+        if DispoInspector.objects.filter(dispo=self.dispo).exclude(pk=self.pk).exists():
+            raise ValidationError('Ya existe la %s' % self.dispo)
+        super().save(*args, **kwargs)
+
+

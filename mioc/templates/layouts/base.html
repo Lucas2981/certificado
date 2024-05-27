@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="shortcut icon" href="{% static 'image/ico.png' %}" type="image/x-icon">
+    <link rel="stylesheet" href="{% static 'admin/css/vendor/select2/select2.css' %}">
+    <link rel="stylesheet" href="{% static 'admin/css/autocomplete.css' %}">
     <title>{% block title %}{% endblock %} |{% if user.first_name == '' %} {{user.username}} {% else %} {{user.first_name | upper}} {% endif %}
     </title>
 </head>
@@ -89,7 +91,7 @@
                                 <li>
                                     <hr class="dropdown-divider">
                                 </li>
-                                <li><a class="dropdown-item" href="#"><i class="bi bi-list-check"></i>
+                                <li><a class="dropdown-item" href="{% url 'memorias' %}"><i class="bi bi-list-check"></i>
                                         Memorias</a></li>
                                 <li><a class="dropdown-item" href="{% url 'nueva_memoria' %}"><i
                                             class="bi bi-file-earmark-plus"></i> Cargar
@@ -126,7 +128,7 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                                 aria-expanded="false">
-                                Dpto Despacho
+                                Dpto Despacho SOC
                             </a>
                             <ul class="dropdown-menu" style="background-color: #8de5e5;"
                                 style="background-color: #8de5e5;">
@@ -135,6 +137,22 @@
                                         Obras</a></li>
                                 <li><a class="dropdown-item" href="{% url 'nueva_obra' %}"><i class="bi bi-file-earmark-plus"></i> Crear
                                         Obra</a></li>
+                            </ul>
+                        </li>
+                        <hr style="color: #8de5e5; height: 2px;">
+                        <!-- Dpto Despacho DPO -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Dpto Despacho DPO
+                            </a>
+                            <ul class="dropdown-menu" style="background-color: #8de5e5;"
+                                style="background-color: #8de5e5;">
+                                <!-- Obras -->
+                                <li><a class="dropdown-item" href="{% url 'dispo_inspe' %}"><i class="bi bi-list-check"></i>
+                                        Dispociciones</a></li>
+                                <li><a class="dropdown-item" href="{% url 'nueva_dispo_inspe' %}"><i class="bi bi-file-earmark-plus"></i> Cargar
+                                        Dispocición</a></li>
                             </ul>
                         </li>
                         {% endif %}
@@ -157,7 +175,7 @@
     </nav>
     <br>
     {% block content %}
-
+    
     {% endblock %}
     <div class="container">
         <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
@@ -195,5 +213,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/2.9.2/umd/popper.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.1.0/js/bootstrap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script src="{% static 'admin/js/vendor/jquery/jquery.js' %}"></script>
+<script src="{% static 'admin/js/vendor/select2/select2.full.js' %}"></script>
+<script src="{% static 'admin/js/vendor/select2/i18n/es.js' %}"></script>
+<script src="{% static 'admin/js/jquery.init.js' %}"></script>
+<script src="{% static 'admin/js/autocomplete.js' %}"></script>
+
 
 </html>

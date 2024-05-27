@@ -5,8 +5,8 @@ from django.db.models import Q,Sum
 from django.contrib.auth.decorators import  permission_required
 from django.core.paginator import Paginator
 from django.contrib import messages
-from . models import ActasObras, Certificados, Memorias, Obras, EmpresaPoliza, Polizas
-from . forms import ActasObrasFormEdit, CertificadoForm, CertificadoFormEdit, MemoriaForm, ObraFormAll, ObraFormActas, EmpresaPolizaForm, ActasObrasForm, PolizaForm
+from . models import ActasObras, Certificados, DispoInspector, Memorias, Obras, EmpresaPoliza, Polizas
+from . forms import ActasObrasFormEdit, CertificadoForm, CertificadoFormEdit, DispoInspForm, DispoInspFormEdit, MemoriaForm, ObraFormAll, ObraFormActas, EmpresaPolizaForm, ActasObrasForm, PolizaForm
 
 
 # Create your views here.
@@ -39,8 +39,15 @@ def lista_obras(request):
     return render(request, 'obras_lista.html', {'entity': obras, 'paginator':paginator })
 
 def detalle_obra(request):
-    obra = Memorias.objects.all()
-    return render(request, 'obra_detalle.html', {'obra':obra})
+    obras = Obras.objects.all()
+    memoria = Memorias.objects.filter(obra__in=obras)
+    certificados = Certificados.objects.filter(obra__in=obras)
+    context = {
+        'memoria':memoria,
+        'certificados':certificados,
+        'obras':obras
+    }
+    return render(request, 'obra_detalle.html', context)
 
 def create_empresa(request):
     if request.method == 'GET':
@@ -370,7 +377,7 @@ def crear_memoria(request):
                 memoria.user = request.user
                 memoria.save()
                 messages.success(request, f'Nueva memoria creada!')
-                return redirect('poliza')
+                return redirect('memorias')
         except ValidationError as e:
             error_message = e.messages[0]
             return render(request, 'memoria_crear.html', {'form': form, 'error': error_message})
@@ -389,7 +396,7 @@ def editar_memoria(request, pk):
             form = MemoriaForm(request.POST, instance=memoria)
             form.save()
             messages.success(request, f'Registro editado!')
-            return redirect('poliza')
+            return redirect('memorias')
         except ValueError:
             memoria = get_object_or_404(Memorias, pk=pk)
             form = MemoriaForm(instance=memoria)
@@ -397,6 +404,30 @@ def editar_memoria(request, pk):
                 'form': form,
                 'error': 'Error al editar memoria'
             })
+
+def borrar_memoria(request, pk):
+    memoria = get_object_or_404(Memorias, pk=pk)
+    memoria.delete()
+    messages.success(request, f'Memoria {memoria.obra} eliminada!')
+    return redirect('memorias')
+
+def lista_memoria(request):
+    memoria = Memorias.objects.all()
+    page = request.GET.get('page',1)
+    try:
+        paginator = Paginator(memoria,5)
+        memoria = paginator.page(page)
+    except:
+        raise Http404
+    queryset = request.GET.get('buscar')
+    if queryset:
+        memoria = Memorias.objects.filter(
+            Q(obra__institucion__name__icontains=queryset) |
+            Q(obra__inspector__fullname__icontains=queryset) |
+            Q(obra__empresa__icontains=queryset) |
+            Q(obervacion__icontains=queryset),
+        ).distinct().order_by('id',)
+    return render(request, 'memoria_lista.html', {'entity': memoria, 'paginator':paginator})
 
 def crear_obra(request):
     if request.method == 'GET':
@@ -439,3 +470,104 @@ def editar_obra(request, pk):
                 'form': form,
                 'error': 'Error al editar obra'
             })
+
+def crear_dispo_inspector(request):
+    if request.method == 'GET':
+        form = DispoInspForm
+        return render(request, 'dispo_inspector_crear.html', {
+            'form': form
+        })
+    else:
+        form = DispoInspForm(request.POST)
+        try:
+            if form.is_valid():
+                dispo_inspector = form.save(commit=False)
+                dispo_inspector.user = request.user
+                dispo_inspector.save()
+                messages.success(request, f'Nueva disposicion creada!')
+                return redirect('dispo_inspe')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'dispo_inspector_crear.html', {'form': form, 'error': error_message})
+    return render(request, 'dispo_inspector_lista.html')
+
+def editar_dispo_inspector(request, pk):
+    obra = get_object_or_404(DispoInspector, pk=pk)
+    if request.method == 'GET':
+        form = DispoInspFormEdit(instance=obra)
+        return render(request, 'dispo_inspector_editar.html', {
+            'form': form
+        })
+    else:
+        try:
+            obra = get_object_or_404(DispoInspector, pk=pk)
+            form = DispoInspFormEdit(request.POST, instance=obra)
+            form.save()
+            messages.success(request, f'Registro editado!')
+            return redirect('dispo_inspe')
+        except ValueError:
+            obra = get_object_or_404(DispoInspector, pk=pk)
+            form = DispoInspFormEdit(instance=obra)
+            return render(request, 'dispo_inspector_editar.html', {
+                'form': form,
+                'error': 'Error al editar disposicion'
+            })
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'dispo_inspector_editar.html', {'form': form, 'error': error_message})
+
+def borrar_dispo_inspector(request, pk):
+    dispo = get_object_or_404(DispoInspector, pk=pk)
+    dispo.delete()
+    messages.success(request, f'Registro eliminado!')
+    return redirect('dispo_inspe')
+def lista_dispo_inspector(request):
+    poliza = DispoInspector.objects.all()
+    page = request.GET.get('page',1)
+    try:
+        paginator = Paginator(poliza,5)
+        poliza = paginator.page(page)
+    except:
+        raise Http404
+    queryset = request.GET.get('buscar')
+    if queryset:
+        poliza = DispoInspector.objects.filter(
+            Q(obra__institucion__name__icontains=queryset) |
+            Q(inspector__fullname__icontains=queryset) |
+            Q(dispo__icontains=queryset) |
+            Q(fecha__icontains=queryset)|
+            Q(observacion__icontains=queryset),
+        ).distinct().order_by('id',)
+    return render(request, 'dispo_inspector_lista.html', {'entity': poliza, 'paginator':paginator})
+
+def lista_dispo_inspector_obra(request, obra_id):
+    disposicion = DispoInspector.objects.filter(obra_id=obra_id).order_by('fecha')
+    try:
+        obra = disposicion.values('obra__institucion__name').annotate(cantidad=Sum('id'))
+        obra = list(obra)
+        obra = obra[0]['obra__institucion__name'].title()
+        queryset = request.GET.get('buscar')
+        if queryset:
+            disposicion = disposicion.filter(
+                Q(obra__institucion__name__icontains=queryset) |
+                Q(inspector__fullname__icontains=queryset) |
+                Q(dispo__icontains=queryset) |
+                Q(fecha__icontains=queryset)|
+                Q(observacion__icontains=queryset),
+            ).distinct().order_by('id',)
+        if not disposicion.exists():
+            context = {
+                'obra': obra,
+                'modal': True,
+                'modal_message': 'La obra no tiene disposiciones',
+            }
+            return render(request, 'dispo_inspector_lista_obra.html', context)
+        return render(request, 'dispo_inspector_lista_obra.html', {
+            'dispo': disposicion,
+            'obra': obra
+        })
+    except ValidationError as e:
+        error_message = e.messages[0]
+        return render(request, 'dispo_inspector_lista.html', {'error': error_message})
+    except Exception as e:
+        return render(request, 'dispo_inspector_lista.html', {'error': 'Ocurrio un error inesperado.'})

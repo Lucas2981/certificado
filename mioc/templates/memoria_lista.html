@@ -1,23 +1,23 @@
 {% extends 'layouts/base.html' %}
 {% block content %}
-{% block title %}Listado de Obra{% endblock %}
+{% block title %}Memorias{% endblock %}
 <main class="container py-5">
-    <h1 class="display-3 text-center fw-medium">Listado de Obras</h1>
+    <h1 class="display-3 text-center fw-medium">Memorias</h1>
     <br>
     {% if error %}
     <div class="alert alert-warning alert-dismissible fade show" role="alert">
-        <strong> ¡Atención! </strong> La obra aún no tiene certificados.
+        <strong> ¡Atención! </strong> La obra aún no tiene memorias.
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
     {% endif %}
     <div class="container">
         <div class="row">
-            <div class="col-md-12 search">
+            <div class="col-md-11 search">
                 <form method="get">
                     <div id="custom-search-input">
                         <div class="input-group col-md-12">
-                            <input type="text" class="form-control" placeholder="Ingrese palabras claves..."
-                                name="buscar" value="{{ request.GET.buscar }}">
+                            <input type="text" class="form-control" placeholder="Ingrese palabras claves..." name="buscar"
+                                value="{{ request.GET.buscar }}">
                             <span class="input-group-list">
                                 <i class="icon icon-search"></i>
                                 <button type="submit" class="btn btn-success">
@@ -25,11 +25,17 @@
                                 </button>
                             </span>
                         </div>
-
+    
                     </div>
                 </form>
             </div>
+            <div class="col-1">
+                <a href="{% url 'nueva_memoria' %}" type="" class="btn btn-outline-secondary">
+                    <i class="bi bi-plus-lg"></i>
+                </a>
+            </div>
         </div>
+        
     </div>
     <hr size="5" color="grey" noshade>
     </class>
@@ -41,25 +47,23 @@
                 <th>Empresa</th>
                 <th>Dpto</th>
                 <th>Finaliza</th>
-                <th>Inspector</th>
+                <th>Memoria</th>
                 <th>Acciones</th>
             </thead>
             <tbody>
                 {% for obra in entity %}
                 <tr>
                     </td>
-                    <td class="fw-semibold">{{obra.codObra}}</td>
-                    <td>{{obra.institucion.name}}</td>
-                    <td>{{obra.empresa.name}}</td>
-                    <td>{{obra.institucion.location.NOMDEPTO}}</td>
-                    <td>{{obra.vencimiento_contractual}}</td>
-                    <td>{{obra.inspector.fullname}}</td>
+                    <td class="fw-semibold">{{obra.obra.codObra}}</td>
+                    <td>{{obra.obra.institucion.name}}</td>
+                    <td>{{obra.obra.empresa.name}}</td>
+                    <td>{{obra.obra.institucion.location.NOMDEPTO}}</td>
+                    <td>{{obra.obra.vencimiento_contractual}}</td>
+                    <td>{% if obra.resumen == null %}❌{% else %}✅{% endif %}</td>
                     <td>
                         <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">
-                            <a type="button" class="btn btn-outline-info" href="{% url 'obra_detalle' %}">Detalle</a>
-                            <a type="button" class="btn btn-outline-info" href="{% url 'actas_obra' obra.id %}">Actas</a>
-                            <a type="button" class="btn btn-outline-info" href="{% url 'certificados_obra' obra.pk %}">Certificados</a>
-                            <a type="button" class="btn btn-outline-success" href="{% url 'editar_obra' obra.id %}">Editar</a>
+                            <a type="button" class="btn btn-outline-success" href="{% url 'editar_memoria' obra.id %}">Editar</a>
+                            <a type="button" class="btn btn-outline-danger" href="{% url 'eliminar_memoria' obra.id %}">Eliminar</a>
                         </div>
                     </td>
                 </tr>
@@ -68,7 +72,6 @@
         </table>
     </div>
     {% include 'paginator.html' %}
-    {{ perms.mioc }}
 </main>
 
 {% endblock %}
