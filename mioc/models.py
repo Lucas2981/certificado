@@ -3,6 +3,7 @@ from django.db.models import Sum
 from django.contrib.auth.models import User
 from datetime import datetime, timedelta
 from django.forms import ValidationError
+from django.db.models import F, Q
 import requests
 import pandas as pd
 import os
@@ -483,21 +484,19 @@ class PresupuestosSubrubros(models.Model):
 
 
 class Certificados(models.Model):
-    id = models.BigAutoField(
-        auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
-    obra = models.ForeignKey(
-        Obras, on_delete=models.CASCADE, verbose_name='Obra')
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    obra = models.ForeignKey(Obras, on_delete=models.CASCADE, verbose_name='Obra')
     nro_cert = models.PositiveIntegerField(verbose_name='Certificado N°')
-    codCert = models.CharField(
-        max_length=200, verbose_name='Cod. Certificado', editable=False, unique=True)
+    codCert = models.CharField(max_length=200, verbose_name='Cod. Certificado', editable=False, unique=True)
     fecha = models.DateField(verbose_name='Fecha del certificado')
-    fecha_acta = models.DateField(
-        verbose_name='Presenta Acta Inspector', blank=True, null=True)
+    fecha_acta = models.DateField(verbose_name='Fecha que presenta Acta el Inspector', blank=True, null=True)
     uvi = models.FloatField(verbose_name='Cant UVIs certificados')
-    cargaCert = models.ForeignKey(
-        User, on_delete=models.CASCADE, verbose_name='Cargado por', default=1)
-    periodo = models.CharField(
-        max_length=30, verbose_name='Periodo medido', null=True, blank=True)
+    uvi_acum = models.FloatField(verbose_name='Cant UVIs acumulados', default=0)
+    avance_acum_proy = models.FloatField(verbose_name='Avance proyectado (%)', default=0)
+    avance_acum_med = models.FloatField(verbose_name='Avance real (%)', default=0)
+    coef_avance = models.CharField(max_length=15,verbose_name='Coef. Avance (%)', default=0)
+    cargaCert = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Cargado por', default=1)
+    periodo = models.CharField(max_length=30, verbose_name='Periodo medido', null=True, blank=True)
 
     class Meta:
         verbose_name = 'Certificado'
@@ -510,11 +509,29 @@ class Certificados(models.Model):
 
     def save(self, *args, **kwargs):
         self.codCert = f'{str(self.obra.codObra)}C{str(self.nro_cert).zfill(2)}'
+        try:
+            anterior = Certificados.objects.filter(Q(obra=self.obra) & Q(nro_cert=self.nro_cert-1))
+            self.uvi_acum = self.uvi + anterior.values('uvi_acum')[0]['uvi_acum']
+        except:
+            self.uvi_acum = self.uvi
+        self.avance_acum_med = round((self.uvi_acum / self.obra.monto_uvi) * 100, 1)
+        coef_avance = self.avance_acum_med / self.avance_acum_proy
+        if coef_avance < 0.9:
+            self.coef_avance = '🟠 Bajo la curva'
+        else:
+            self.coef_avance = '🟢 Sobre la curva'
         if self.fecha:
             self.periodo = str(self.fecha.strftime('%B %y')).title()
         if Certificados.objects.filter(codCert=self.codCert).exclude(pk=self.pk).exists():
             raise ValidationError(
                 'Esta obra ya cuenta con certificado N° %s' % self.nro_cert)
+        # ultimo = Certificados.objects.filter(Q(obra=self.obra) & Q(nro_cert=self.nro_cert-1))
+        ultimo = Certificados.objects.filter(obra=self.obra).order_by('-nro_cert').values('nro_cert')[0]['nro_cert']
+        if (self.nro_cert - ultimo == 1):
+            print('ok')
+        else:
+            raise ValidationError(
+                f'El certificado N° {ultimo+1} se encuentra pendiente, verifique por favor!')
         super().save(*args, **kwargs)
 
 

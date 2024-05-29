@@ -41,14 +41,13 @@ def lista_obras(request):
 def detalle_obra(request):
     obras = Obras.objects.all()
     memoria = Memorias.objects.filter(obra__in=obras)
-    certificados = Certificados.objects.filter(obra__in=obras)
+    certificados = Certificados.objects.filter(obra__in=obras).order_by('nro_cert')
     context = {
-        'memoria':memoria,
-        'certificados':certificados,
-        'obras':obras
+        'memoria': memoria,
+        'certificados': certificados,
+        'obras': obras,
     }
     return render(request, 'obra_detalle.html', context)
-
 def create_empresa(request):
     if request.method == 'GET':
         return render(request, 'fondo_reparo_crear.html', {
@@ -103,7 +102,7 @@ def lista_empresa(request):
     return render(request, 'empresa_lista.html', {'entity': empresa, 'paginator':paginator })
 
 def lista_certificados(request):
-    certificados = Certificados.objects.all()
+    certificados = Certificados.objects.all().order_by('obra__codObra','nro_cert')
     page = request.GET.get('page',1)
     try:
         paginator = Paginator(certificados,5)

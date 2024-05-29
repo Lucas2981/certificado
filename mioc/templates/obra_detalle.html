@@ -9,52 +9,77 @@
     <br>
     <div class="accordion accordion-flush" id="accordionFlushExample">
         <!-- inicio item -->
-        {% for x in obra %}
+        {% for x in obras %}
         <div class="accordion-item">
             <h2 class="accordion-header">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#flush-collapse{{ x.id }}" aria-expanded="false" aria-controls="flush-collapse{{ x.id }}">
-                    <b>{{ forloop.counter }}</b> - {{ x.obra.codObra }} - {{ x.obra.institucion.name }}
+                    data-bs-target="#flush-collapse{{ x.id }}" aria-expanded="false"
+                    aria-controls="flush-collapse{{ x.id }}">
+                    <b>{{ forloop.counter }}</b> - {{ x.codObra }} - {{ x.institucion.name }}
                 </button>
             </h2>
-            <div id="flush-collapse{{ x.id }}" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+            <div id="flush-collapse{{ x.id }}" class="accordion-collapse collapse"
+                data-bs-parent="#accordionFlushExample">
                 <div class="accordion-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <p>Carátula: <b>{{ x.obra.nombre_obra }}</b></p>
-                            <p>Tipo de obra: <b>{{ x.obra.institucion.clase.name }} - {{ x.obra.institucion.clase.subname }}</b></p>
-                            <p>Departamento: <b>{{ x.obra.institucion.location.NOMDEPTO }} (Cod. Indec {{ x.obra.institucion.location.CODDEPTO }})</b></p>
-                            <p>Municipio: <b>{{ x.obra.institucion.location.NOMMUNI }} (Cod. Indec {{ x.obra.institucion.location.CODMUNI }})</b></p>
-                            <p>Localidad: <b>{{ x.obra.institucion.location.NOMLOC }} (Cod. Indec {{ x.obra.institucion.location.CODLOC }})</b></p>
-                            <p>Empresa Constructora: <b>{{ x.obra.empresa }}</b> </p>
-                            <p> > Representante Técnico: {{ x.obra.empresa.representante_tecnico }}</p>
-                            <p> > Propietario: {{ x.obra.empresa.propietario }}</p>
-                            <p> > Contacto: {{ x.obra.empresa.email }} - {{ x.obra.empresa.telephone }}</p>
-                            <p>Fecha de inicio: <b>{{ x.obra.inicio }}</b></p>
-                            <p>Fecha de entrega: <b>{{ x.obra.vencimiento_contractual }}</b></p>
-                            <p>Monto de contrato ($): <b>{{ x.obra.monto_contrato|intcomma  }}</b></p>
-                            <p>Monto de contrato (UVIS): <b>{{ x.obra.monto_uvi|intcomma }}</b></p>
-                            <figure class="figure">
-                                <img src= "{{ x.imagen }}"
-                                    class="figure-img img-fluid rounded" alt="MIOC">
-                                <figcaption class="figure-caption">Puente 3era etapa.</figcaption>
-                            </figure>
-                            <p class="text-center"><span class="badge text-bg-primary">Avance esperado</span><span
-                                    class="badge text-bg-success">Avance real</span></p>
-                            <div class="progress" role="progressbar" aria-label="Primary example" aria-valuenow="45"
-                                aria-valuemin="0" aria-valuemax="100">
-                                <div class="progress-bar bg-primary" style="width: 45%">45%</div>
-                            </div>
-                            <br>
-                            <div class="progress" role="progressbar" aria-label="Success example" aria-valuenow="50"
-                                aria-valuemin="0" aria-valuemax="100">
-                                <div class="progress-bar bg-success" style="width: 50%">50%</div>
+                            <p class="h4">Datos Generales:</p>
+                            <p>Expediente: <b>{{ x.expedientes }}</b></p>
+                            <p>Carátula: <b>{{ x.nombre_obra }}</b></p>
+                            <p>Tipo de obra: <b>{{ x.institucion.clase.name }} - {{ x.institucion.clase.subname }}</b></p>
+                            <p>Departamento: <b>{{ x.institucion.location.NOMDEPTO }} (Cod. Dpto {{ x.institucion.location.CODDEPTO }})</b></p>
+                            <p>Municipio: <b>{{ x.institucion.location.NOMMUNI }} (Cod. Mun. {{ x.institucion.location.CODMUNI }})</b></p>
+                            <p>Localidad: <b>{{ x.institucion.location.NOMLOC }} (Cod. Loc. {{ x.institucion.location.CODLOC }})</b></p>
+                            <p>Empresa Constructora: <b>{{ x.empresa }}</b> </p>
+                            <p> > Representante Técnico: {{ x.empresa.representante_tecnico }}</p>
+                            <p> > Propietario: {{ x.empresa.propietario }}</p>
+                            <p> > Contacto: {{ x.empresa.email }} - {{ x.empresa.telephone }}</p>
+                            <p>Fecha de inicio: <b>{{ x.inicio }}</b></p>
+                            <p>Fecha de entrega: <b>{{ x.vencimiento_contractual }}</b></p>
+                            <p>Monto de contrato ($): <b>{{ x.monto_contrato|intcomma }}</b></p>
+                            <p>Monto de contrato (UVIS): <b>{{ x.monto_uvi|intcomma }}</b></p>
+                            <hr>
+                            <p class="h4">Certificados Emitidos:</p>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead class="table-primary">
+                                        <th>N° Cert</th>
+                                        <th>Periodo</th>
+                                        <th>AV. Acum. Real</th>
+                                        <th>AV. Acum. Proy.</th>
+                                        <th>C. Avance</th>
+                                    </thead>
+                                    <tbody>
+                                        {% for z in certificados %}
+                                        {% if z.obra.codObra == x.codObra %}
+                                        <tr>
+                                            <td>{{ z.nro_cert }}</td> </td>
+                                            <td>{{ z.periodo }}</td>
+                                            <td>{{ z.avance_acum_med }}%</td>
+                                            <td>{{ z.avance_acum_proy }}%</td>
+                                            <td>{{ z.coef_avance }}</td>
+                                        </tr>
+                                        {% endif %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <p class="textarea" style="white-space: pre-wrap;">{{ x.resumen }}</p>
-                            <span><i>Resumido por: <b>{{ x.user }}</b></i></span>
-                            
+                            {% for y in memoria %}
+                            {% if y.obra.codObra == x.codObra %}
+                            <p class="h4">Resumen de memoria:</p>
+                            <p class="textarea" style="white-space: pre-wrap;">{{ y.resumen }}</p>
+                            <span><i>Resumido por: <b>{{ y.user }}</b></i></span>
+                            {% endif %}
+                            {% endfor %}
+                            <hr>
+                            <p class="h4">Galeria:</p>
+                            <figure class="figure">
+                                <img src="{{ x.imagen }}" class="figure-img img-fluid rounded" alt="MIOC">
+                                <figcaption class="figure-caption">Puente 3era etapa.</figcaption>
+                            </figure>
                         </div>
                     </div>
                     <br>
@@ -64,30 +89,6 @@
         {% endfor %}
         <!-- final item -->
     </div>
-    <br>
-    <h1>Detalles de la obra {{ obras.name }}</h1>
-    
-    <table class="table table-striped table-bordered">
-        <tr>
-            <th>Tipos de documentos</th>
-            <th>Codigo</th>
-            <th>Obra</th>
-        </tr>
-        {% for memoria in memoria %}
-        <tr>
-            <td>Memoria</td>
-            <td>{{ memoria.codMem }}</td>
-            <td>{{ memoria.obra.institucion.name }}</td>
-        </tr>
-        {% endfor %}
-        {% for certificado in certificados %}
-        <tr>
-            <td>Certificado</td>
-            <td>{{ certificado.nro_cert }}</td>
-            <td>{{ certificado.obra.institucion.name }}</td>
-        </tr>
-        {% endfor %}
-    </table>
     {{ error }}
 </main>
 {% endblock %}

@@ -21,8 +21,7 @@ class ObraFormAll(ModelForm):
 class ObraFormActas(ModelForm):
     class Meta:
         model = Obras
-        fields = ['monto_contrato', 'fecha_cotrato',
-                  'monto_uvi', 'valor_uvi_contrato']
+        fields = ['monto_contrato', 'fecha_cotrato','monto_uvi', 'valor_uvi_contrato']
 
 
 class EmpresaPolizaForm(ModelForm):
@@ -34,15 +33,16 @@ class EmpresaPolizaForm(ModelForm):
 class CertificadoForm(ModelForm):
     class Meta:
         model = Certificados
-        fields = ['obra', 'nro_cert', 'fecha_acta', 'fecha', 'uvi']
+        fields = ['obra', 'nro_cert', 'fecha_acta', 'fecha', 'uvi','avance_acum_proy']
         widgets = {'fecha': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-                   'fecha_acta': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})}
+                'fecha_acta': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'})}
 
 
 class CertificadoFormEdit(ModelForm):
     class Meta:
         model = Certificados
         fields = ['obra', 'nro_cert', 'fecha_acta', 'fecha', 'uvi']
+        # fields = '__all__'
 
 
 class ActasObrasForm(ModelForm):
