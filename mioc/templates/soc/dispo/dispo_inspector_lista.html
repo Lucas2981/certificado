@@ -1,0 +1,79 @@
+{% extends 'layouts/base.html' %}
+{% block content %}
+{% block title %}Disposiciones{% endblock %}
+{% load static %}
+<main class="container py-5">
+    <h3 class="display-3 text-center fw-medium">Disposiciones</h3>
+    <br>
+    <div class="container">
+        <div class="row flex-fill">
+            <div class="col-md-11 search">
+                <form method="get">
+                    <div id="custom-search-input">
+                        <div class="input-group col-md-12">
+                            <input type="text" class="form-control" placeholder="Ingrese palabras claves..." name="buscar"
+                                value="{{ request.GET.buscar }}">
+                            <span class="input-group-list">
+                                <i class="icon icon-search"></i>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-search"></i> Buscar
+                                </button>
+                            </span>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+            {% if perms.mioc.add_dispoinspector %}
+            <div class="col-1">
+                <a href="{% url 'nueva_dispo_inspe' %}" type="" class="btn btn-outline-secondary">
+                    <i class="bi bi-plus-lg"></i>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <hr size="5" color="grey" noshade>
+    </class>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-success">
+                <th>Dispocición</th>
+                <th>Obra</th>
+                <th>Inspector</th>
+                <th>Fecha</th>
+                <th>Registró</th>
+                <th>Acciones</th>
+            </thead>
+            <tbody>
+                {% for x in entity %}
+                <tr></td>
+                    <td class="fw-semibold">{{x.dispo}}</td>
+                    <td>{{x.obra.institucion.name}}</td>
+                    <td>{{x.inspector}}</td>
+                    <td>{{x.fecha}}</td>
+                    <td>{{x.user}}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">
+                            {% if perms.mioc.view_obras %}
+                            <a type="button" class="btn btn-outline-info" href="{% url 'dispo_inspe_obra' x.obra_id %}"><i class="bi bi-funnel"></i></a>
+                            {% endif %}
+                            {% if perms.mioc.view_dispoinspector %}
+                            <a type="button" class="btn btn-outline-info" href="#"><i class="bi bi-search"></i></a>
+                            {% endif %}
+                            {% if perms.mioc.change_dispoinspector %}
+                            <a type="button" class="btn btn-outline-success" href="{% url 'editar_dispo_inspe' x.id %}"><i class="bi bi-pencil-square"></i></a>
+                            {% endif %}
+                            {% if perms.mioc.delete_dispoinspector %}
+                            <a type="button" class="btn btn-outline-danger" href="{% url 'eliminar_dispo_inspe' x.id %}"><i class="bi bi-trash3"></i></a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'layouts/paginator.html' %}
+</main>
+{% endblock %}

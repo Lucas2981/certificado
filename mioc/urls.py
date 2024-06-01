@@ -16,6 +16,7 @@ urlpatterns = [
     path('obras/certificados/nuevo',login_required(views.crear_certificado), name='nuevo_cert'),
     path('obras/certificados/<int:pk>/editar/',login_required(views.editar_certificado), name='editar_cert'),
     path('obras/certificados/<int:pk>/eliminar/',login_required(views.borrar_certificado), name='eliminar_cert'),
+    path('obras/certificados/<int:pk>/ver/',login_required(views.ver_certificado), name='ver_cert'),
     # memorias
     path('obras/memoria/nueva',login_required(views.crear_memoria), name='nueva_memoria'),
     path('obras/memoria/<int:pk>/editar/',login_required(views.editar_memoria), name='editar_memoria'),
@@ -26,10 +27,12 @@ urlpatterns = [
     path('obras/certificados/actas/',login_required(views.lista_actas), name='actas'),
     path('obras/certificados/acta/nueva/',login_required(views.crear_acta), name='nueva_acta'),
     path('obras/certificados/acta/<int:pk>/editar/',login_required(views.editar_acta), name='editar_acta'),
+    path('obras/certificados/acta/<int:pk>/eliminar/',login_required(views.borrar_acta), name='eliminar_acta'),
     # aseguradoras
     path('aseguradora/',login_required(views.lista_empresa), name='aseguradora'),
     path('aseguradora/nueva',login_required(views.create_empresa), name='nueva'),
     path('aseguradora/<int:pk>//editar',login_required(views.edit_empresa), name='editar'),
+    path('aseguradora/<int:pk>/elimiar',login_required(views.borrar_empresa), name='eliminar'),
     # polizas
     path('aseguradora/poliza/nueva/',login_required(views.crear_poliza), name='nueva_poliza'),
     path('aseguradora/poliza/<int:pk>/editar/',login_required(views.editar_poliza), name='editar_poliza'),

@@ -123,7 +123,7 @@ class EmpresaPolizaAdmin(admin.ModelAdmin):
 admin.site.register(EmpresaPoliza,EmpresaPolizaAdmin)
 
 class CertificadoAdmin(admin.ModelAdmin):
-    list_display = ('codCert','id','obra','nro_cert','periodo','uvi')
+    list_display = ('codCert','id','obra','nro_cert','periodo','uvi','ultima_modificacion')
 admin.site.register(Certificados,CertificadoAdmin)
 
 class ActaTipoAdmin(admin.ModelAdmin):

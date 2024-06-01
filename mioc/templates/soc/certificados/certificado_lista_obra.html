@@ -1,0 +1,78 @@
+{% extends 'layouts/base.html' %}
+{% block content %}
+{% block title %}Certificados de Obra{% endblock %}
+<main class="container py-5">
+    <h3 class="display-3 text-center fw-medium">Certificados de {{obra}}</h3>
+    <br>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-11 search">
+                <form method="get">
+                    <div id="custom-search-input">
+                        <div class="input-group col-md-12">
+                            <input type="text" class="form-control" placeholder="Ingrese palabras claves..."
+                                name="buscar" value="{{ request.GET.buscar }}">
+                            <span class="input-group-list">
+                                <i class="icon icon-search"></i>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-search"></i> Buscar
+                                </button>
+                            </span>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+            {% if perms.mioc.add_certificados %}
+            <div class="col-1">
+                <a href="{% url 'nuevo_cert' %}" type="" class="btn btn-outline-secondary">
+                    <i class="bi bi-plus-lg"></i>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <hr size="5" color="grey" noshade>
+    </class>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-success">
+                <th>Cert. N°</th>
+                <th>Expte. Cert.</th>
+                <th>Monto UVI</th>
+                <th>Periodo certificado</th>
+                <th>Coheficiente Avance</th>
+                <th>Creado</th>
+                <th>Modificado</th>
+                <th>Acciones</th>
+            </thead>
+            <tbody>
+                {% for certificado in certificados %}
+                <tr>
+                    <td class="fw-semibold">{{ certificado.nro_cert }}</td>
+                    <td >{{ certificado.expediente }}</td>
+                    <td>{{certificado.uvi}}</td>
+                    <td>{{ certificado.periodo }}</td>
+                    <td>{% if certificado.coef_avance == True %}<i class="bi bi-graph-down-arrow" style="color: red;"></i> Bajo la curva{% else %}<i class="bi bi-graph-up-arrow" style="color: green;"></i> Sobre la curva{% endif %}</td>
+                    <td>{{ certificado.cargaCert }} el {{ certificado.creado }}</td>
+                    <td>{% if certificado.ultimo_editor == None %}❌{% else %} {{ certificado.ultimo_editor }} el {{ certificado.ultima_modificacion }} {% endif %}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">
+                            <a type="button" class="btn btn-outline-info" href="{% url 'ver_cert' certificado.pk %}"><i class="bi bi-search"></i></a>
+                            {% if perms.mioc.change_certificados %}
+                            <a type="button" class="btn btn-outline-success"
+                                href="{% url 'editar_cert' certificado.pk %}"><i class="bi bi-pencil-square"></i></a>
+                            {% endif %}
+                            {% if perms.mioc.delete_certificados %}
+                            <a type="button" class="btn btn-outline-danger" href="{% url 'eliminar_cert' certificado.pk %}"><i class="bi bi-trash3"></i></a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'layouts/paginator.html' %}
+</main>
+{% endblock %}

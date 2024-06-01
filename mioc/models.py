@@ -241,7 +241,7 @@ class Obras(models.Model):
     nombre_obra = models.CharField(max_length=250, verbose_name='Carátula Obra', null=True, blank=True)
     monto_contrato = models.FloatField(verbose_name='Monto de contrato ($)', blank=True, null=True)
     fecha_cotrato = models.DateField(verbose_name='Fecha de contrato', blank=True, null=True)
-    monto_uvi = models.FloatField(verbose_name='Monto de contrato (UVIS)', blank=True, null=True)
+    monto_uvi = models.FloatField(verbose_name='Monto de contrato (UVIS)')
     valor_uvi_contrato = models.FloatField(verbose_name='Valor UVI contrato', blank=True, null=True)
 
     class Meta:
@@ -485,18 +485,22 @@ class PresupuestosSubrubros(models.Model):
 
 class Certificados(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    expediente = models.CharField(max_length=30, verbose_name='Expediente')
     obra = models.ForeignKey(Obras, on_delete=models.CASCADE, verbose_name='Obra')
     nro_cert = models.PositiveIntegerField(verbose_name='Certificado N°')
-    codCert = models.CharField(max_length=200, verbose_name='Cod. Certificado', editable=False, unique=True)
+    codCert = models.CharField(max_length=200, verbose_name='Cod. Certificado', unique=True)
     fecha = models.DateField(verbose_name='Fecha del certificado')
     fecha_acta = models.DateField(verbose_name='Fecha que presenta Acta el Inspector', blank=True, null=True)
     uvi = models.FloatField(verbose_name='Cant UVIs certificados')
     uvi_acum = models.FloatField(verbose_name='Cant UVIs acumulados', default=0)
     avance_acum_proy = models.FloatField(verbose_name='Avance proyectado (%)', default=0)
     avance_acum_med = models.FloatField(verbose_name='Avance real (%)', default=0)
-    coef_avance = models.CharField(max_length=15,verbose_name='Coef. Avance (%)', default=0)
+    coef_avance = models.BooleanField(verbose_name='Coef. Avance (%)', default=False)
     cargaCert = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Cargado por', default=1)
     periodo = models.CharField(max_length=30, verbose_name='Periodo medido', null=True, blank=True)
+    creado = models.DateTimeField(auto_now_add=True, verbose_name='Fecha y hora de creación')
+    ultimo_editor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='certificados_modificados', null=True, blank=True, verbose_name='Último usuario editor')
+    ultima_modificacion = models.DateTimeField(auto_now=True, verbose_name='Fecha y hora de última modificación', blank=True, null=True)
 
     class Meta:
         verbose_name = 'Certificado'
@@ -506,6 +510,16 @@ class Certificados(models.Model):
     def clean(self):
         if self.pk is None:
             pass
+
+    def validate_unique(self, exclude=None):
+            if self.pk is None: 
+                return
+            try:
+                certs = Certificados.objects.filter(codCert=self.codCert, obra=self.obra).exclude(pk=self.pk)
+                if certs.exists():
+                    raise ValidationError('Esta obra ya cuenta con certificado N° %s' % self.nro_cert)
+            except:
+                raise
 
     def save(self, *args, **kwargs):
         self.codCert = f'{str(self.obra.codObra)}C{str(self.nro_cert).zfill(2)}'
@@ -517,19 +531,16 @@ class Certificados(models.Model):
         self.avance_acum_med = round((self.uvi_acum / self.obra.monto_uvi) * 100, 1)
         coef_avance = self.avance_acum_med / self.avance_acum_proy
         if coef_avance < 0.9:
-            self.coef_avance = '🟠 Bajo la curva'
+            self.coef_avance = False
         else:
-            self.coef_avance = '🟢 Sobre la curva'
+            self.coef_avance = True
         if self.fecha:
             self.periodo = str(self.fecha.strftime('%B %y')).title()
-        if Certificados.objects.filter(codCert=self.codCert).exclude(pk=self.pk).exists():
-            raise ValidationError(
-                'Esta obra ya cuenta con certificado N° %s' % self.nro_cert)
-        # ultimo = Certificados.objects.filter(Q(obra=self.obra) & Q(nro_cert=self.nro_cert-1))
-        ultimo = Certificados.objects.filter(obra=self.obra).order_by('-nro_cert').values('nro_cert')[0]['nro_cert']
-        if (self.nro_cert - ultimo == 1):
-            print('ok')
-        else:
+        try:
+            ultimo = Certificados.objects.filter(obra=self.obra).order_by('-nro_cert').values('nro_cert')[0]['nro_cert']
+        except:
+            ultimo = 0
+        if (self.nro_cert - ultimo > 1):
             raise ValidationError(
                 f'El certificado N° {ultimo+1} se encuentra pendiente, verifique por favor!')
         super().save(*args, **kwargs)

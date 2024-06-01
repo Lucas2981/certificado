@@ -9,8 +9,8 @@
         <div class="card-body">
             <h5 class="card-title">Complete su registro</h5>
             {{ form | crispy }}
-            <a href={% url 'index' %} class="card-link">Inicio</a>
-            <a href={% url 'signin' %} class="card-link">Iniciar Sesión</a>
+            <a href="{% url 'index' %}" class="card-link">Inicio</a>
+            <a href="{% url 'signin' %}" class="card-link">Iniciar Sesión</a>
             <button class="btn btn-sm btn-primary float-end" type="">Registrarse</button>
         </div>
     </div>

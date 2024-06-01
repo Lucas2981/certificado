@@ -1,0 +1,91 @@
+{% extends 'layouts/base.html' %}
+{% block content %}
+{% block title %}Listado de Obra{% endblock %}
+<main class="container py-5">
+    <h1 class="display-3 text-center fw-medium">Listado de Obras</h1>
+    <br>
+    {% if error %}
+    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+        <strong> ¡Atención! </strong> La obra aún no tiene certificados.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+    <div class="container">
+        <div class="row">
+            <div class="col-md-11 search">
+                <form method="get">
+                    <div id="custom-search-input">
+                        <div class="input-group col-md-12">
+                            <input type="text" class="form-control" placeholder="Ingrese palabras claves..."
+                                name="buscar" value="{{ request.GET.buscar }}">
+                            <span class="input-group-list">
+                                <i class="icon icon-search"></i>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-search"></i> Buscar
+                                </button>
+                            </span>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+            {% if perms.mioc.add_obras %}
+            <div class="col-1">
+                <a href="{% url 'nueva_obra' %}" type="" class="btn btn-outline-secondary">
+                    <i class="bi bi-plus-lg"></i>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <hr size="5" color="grey" noshade>
+    </class>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-success">
+                <th>Cod. Obra</th>
+                <th>Obra</th>
+                <th>Empresa</th>
+                <th>Dpto</th>
+                <th>Finaliza</th>
+                <th>Inspector</th>
+                <th>Acciones</th>
+            </thead>
+            <tbody>
+                {% for obra in entity %}
+                <tr>
+                    </td>
+                    <td class="fw-semibold">{{obra.codObra}}</td>
+                    <td>{{obra.institucion.name}}</td>
+                    <td>{{obra.empresa.name}}</td>
+                    <td>{{obra.institucion.location.NOMDEPTO}}</td>
+                    <td>{{obra.vencimiento_contractual}}</td>
+                    <td>{{obra.inspector.fullname}}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">
+                            {% if perms.mioc.view_obras %}
+                            <a type="button" class="btn btn-outline-info" href="{% url 'obra_detalle' %}"><i class="bi bi-search"></i></a>
+                            {% endif %}
+                            {% if perms.mioc.view_actasobras %}
+                            <a type="button" class="btn btn-outline-info" href="{% url 'actas_obra' obra.id %}"><i class="bi bi-funnel"></i> Actas</a>
+                            {% endif %}
+                            {% if perms.mioc.view_certificados %}
+                            <a type="button" class="btn btn-outline-info" href="{% url 'certificados_obra' obra.pk %}"><i class="bi bi-funnel"></i> Certificados</a>
+                            {% endif %}
+                            {% if perms.mioc.change_obras %}
+                            <a type="button" class="btn btn-outline-success" href="{% url 'editar_obra' obra.id %}"><i class="bi bi-pencil-square"></i></a>
+                            {% endif %}
+                            {% if perms.mioc.delete_obras %}
+                            <a type="button" class="btn btn-outline-danger" href="#"><i class="bi bi-trash3"></i></a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'layouts/paginator.html' %}
+</main>
+
+{% endblock %}
