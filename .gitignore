@@ -1,5 +1,4 @@
 P10Rad2010 DEFINITIVA con datos.xlsx
 venv
 .env
-db.sqlite3
 __pycache__
