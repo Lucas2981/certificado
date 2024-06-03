@@ -7,20 +7,90 @@ from django.contrib.auth.decorators import  permission_required
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
+import numpy as np
 from . models import ActasObras, Certificados, DispoInspector, Memorias, Obras, EmpresaPoliza, Polizas
 from . forms import ActasObrasFormEdit, CertificadoForm, CertificadoFormEdit, CertificadoViewForm, DispoInspForm, DispoInspFormEdit, MemoriaForm, ObraFormAll, ObraFormActas, EmpresaPolizaForm, ActasObrasForm, PolizaForm
-
+from datetime import datetime, date
+import plotly.express as px
 
 def index(request):
-    obras = Obras.objects.all()
-    obras = obras.count()
-    certificados = len(Certificados.objects.filter(fecha__year=2024))
+    ano = date.today().year
+    actas = ActasObras.objects.filter(fecha__year=ano)
+    try:
+        paralizadas = actas.filter(tipo__name='Paralización').count() - actas.filter(tipo__name='Reinicio').count()
+    except:
+        paralizadas = 0
+    try:
+        finalizadas = actas.filter(tipo__name='Recepción Provisoria').count()
+    except:
+        finalizadas = 0
+    activas = actas.filter(tipo__name='Inicio').count() - finalizadas - paralizadas
+    totales = activas + paralizadas + finalizadas
+    porc_paralizadas = round(paralizadas / totales * 100, 2)
+    porc_finalizadas = round(finalizadas / totales * 100, 2)
+    porc_activas = round(activas / totales * 100, 2)
+    certificados = Certificados.objects.filter(fecha__year=ano)
+    cant_cert = len(certificados)
+    monto_cert = certificados.aggregate(Sum('uvi'))['uvi__sum']/1000
+    data = Certificados.objects.all()
+    fig = px.line(
+        x = data.values_list('fecha', flat=True),
+        y = data.values_list('uvi', flat=True),
+        labels = {'x': 'Fecha', 'y': 'UVIs'},
+        title = 'UVIs por fecha'
+    )
+    chart = fig.to_html()
+    df = px.data.gapminder().query("year == 2007")
+    fig = px.sunburst(df, path=['continent', 'country'], values='pop',
+                      color='lifeExp', hover_data=['iso_alpha'],
+                      color_continuous_scale='RdBu',
+                      color_continuous_midpoint=np.average(df['lifeExp'], weights=df['pop']),
+                      title='Ejemplo para montos por empresa/obra')
+    chart_2 = fig.to_html()
+
+    df = px.data.gapminder().query("year == 2007")
+    fig = px.treemap(df, path=[px.Constant("world"), 'continent', 'country'], values='pop',
+                    color='lifeExp', hover_data=['iso_alpha'],
+                    color_continuous_scale='RdBu',
+                    color_continuous_midpoint=np.average(df['lifeExp'], weights=df['pop']),
+                    title='Ejemplo 2 para montos por empresa/obra')
+    fig.update_layout(margin = dict(t=50, l=25, r=25, b=25))
+    chart_3 = fig.to_html()
+    
+    df = px.data.tips()
+    fig = px.box(df, x="time", y="total_bill", points="all",title='Ejemplo para coheficiente de avance por inspector')
+    chart_4 = fig.to_html()
+
     context = {
         'certificados': certificados,
-        'obras': obras
+        'cant_cert': cant_cert,
+        'monto_cert': monto_cert,
+        'activas': activas,
+        'paralizadas': paralizadas,
+        'finalizadas': finalizadas,
+        'ano': ano,
+        'porc_paralizadas': porc_paralizadas,
+        'porc_finalizadas': porc_finalizadas,
+        'porc_activas': porc_activas,
+        'chart': chart,
+        'chart_2': chart_2,
+        'chart_3': chart_3,
+        'chart_4': chart_4
     }
     return render(request, 'soc/index.html', context)
 
+def chart(request):
+    data = Certificados.objects.all()
+    
+    fig = px.line(
+        x = data.values_list('fecha', flat=True),
+        y = data.values_list('uvi', flat=True),
+        labels = {'x': 'Fecha', 'y': 'UVIs'},
+        title = 'UVIs por fecha'
+    )
+    chart = fig.to_html()
+
+    return render(request, 'soc/dashboard.html', {'chart': chart})
 
 # Div Fondo Sustitución
 @permission_required('mioc.add_empresapoliza')

@@ -493,8 +493,8 @@ class Certificados(models.Model):
     fecha_acta = models.DateField(verbose_name='Fecha que presenta Acta el Inspector', blank=True, null=True)
     uvi = models.FloatField(verbose_name='Cant UVIs certificados')
     uvi_acum = models.FloatField(verbose_name='Cant UVIs acumulados', default=0)
-    avance_acum_proy = models.FloatField(verbose_name='Avance proyectado (%)', default=0)
-    avance_acum_med = models.FloatField(verbose_name='Avance real (%)', default=0)
+    avance_acum_proy = models.FloatField(verbose_name='Avance proyectado acumulado (%)', default=0)
+    avance_acum_med = models.FloatField(verbose_name='Avance real acumulado (%)', default=0)
     coef_avance = models.BooleanField(verbose_name='Coef. Avance (%)', default=False)
     cargaCert = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Cargado por', default=1)
     periodo = models.CharField(max_length=30, verbose_name='Periodo medido', null=True, blank=True)
@@ -543,6 +543,12 @@ class Certificados(models.Model):
         if (self.nro_cert - ultimo > 1):
             raise ValidationError(
                 f'El certificado N° {ultimo+1} se encuentra pendiente, verifique por favor!')
+        try:
+                certs = Certificados.objects.filter(codCert=self.codCert, obra=self.obra).exclude(pk=self.pk)
+                if certs.exists():
+                    raise ValidationError('Esta obra ya cuenta con certificado N° %s' % self.nro_cert)
+        except:
+            raise
         super().save(*args, **kwargs)
 
 

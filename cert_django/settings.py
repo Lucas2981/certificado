@@ -33,7 +33,7 @@ DEBUG = 'RENDER' not in os.environ
 
 # ALLOWED_HOSTS = ['c46c-181-84-83-7.ngrok-free.app','localhost:80', '127.0.0.1:80']
 # CSRF_TRUSTED_ORIGINS = ['https://c46c-181-84-83-7.ngrok-free.app']
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.1.55',]
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
@@ -104,8 +104,8 @@ WSGI_APPLICATION = "cert_django.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-# DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3","NAME": BASE_DIR / "db.sqlite3",}}
-DATABASES = {'default': dj_database_url.config(default='postgresql://postgres:postgres@localhost:5432/mysite',conn_max_age=600)}
+DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3","NAME": BASE_DIR / "db.sqlite3",}}
+# DATABASES = {'default': dj_database_url.config(default='postgresql://postgres:postgres@localhost:5432/mysite',conn_max_age=600)}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
