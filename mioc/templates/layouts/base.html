@@ -155,6 +155,22 @@
                             </ul>
                         </li>
                         <hr style="color: #8de5e5; height: 2px;">
+                        <!-- Inspección de Obras -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                                aria-expanded="false">
+                                Inspección de Obras
+                            </a>
+                            <ul class="dropdown-menu" style="background-color: #8de5e5;">
+                                <!-- Actas de medición-->
+                                <li><a class="dropdown-item" href="{% url 'medicion' %}"><i class="bi bi-list-check"></i>
+                                        Actas de Medición</a></li>
+                                <li><a class="dropdown-item" href="{% url 'nueva_medicion' %}"><i
+                                            class="bi bi-file-earmark-plus"></i> Nueva
+                                        Medición</a></li>
+                            </ul>
+                        </li>
+                        <hr style="color: #8de5e5; height: 2px;">
                         <li class="nav-item">
                             <a href="{% url 'logout' %}" class="nav-link"><i class="bi bi-box-arrow-right"></i>
                                 Salir</a>

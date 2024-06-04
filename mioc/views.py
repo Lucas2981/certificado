@@ -9,8 +9,8 @@ from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 import numpy as np
-from . models import ActasObras, Certificados, DispoInspector, Memorias, Obras, EmpresaPoliza, Polizas
-from . forms import ActasObrasFormEdit, CertificadoForm, CertificadoFormEdit, CertificadoViewForm, DispoInspForm, DispoInspFormEdit, MemoriaForm, ObraFormAll, ObraFormActas, EmpresaPolizaForm, ActasObrasForm, PolizaForm
+from . models import ActaMedicion, ActasObras, Certificados, DispoInspector, Memorias, Obras, EmpresaPoliza, Polizas
+from . forms import ActaMedicionForm, ActaMedicionFormEdit, ActasObrasFormEdit, CertificadoForm, CertificadoFormEdit, CertificadoViewForm, DispoInspForm, DispoInspFormEdit, MemoriaForm, ObraFormAll, ObraFormActas, EmpresaPolizaForm, ActasObrasForm, PolizaForm
 from datetime import datetime, date
 
 from plotly.offline import plot
@@ -30,12 +30,20 @@ def index(request):
         finalizadas = 0
     activas = actas.filter(tipo__name='Inicio').count() - finalizadas - paralizadas
     totales = activas + paralizadas + finalizadas
-    porc_paralizadas = round(paralizadas / totales * 100, 2)
-    porc_finalizadas = round(finalizadas / totales * 100, 2)
-    porc_activas = round(activas / totales * 100, 2)
+    try:
+        porc_paralizadas = round(paralizadas / totales * 100, 2)
+        porc_finalizadas = round(finalizadas / totales * 100, 2)
+        porc_activas = round(activas / totales * 100, 2)
+    except:
+        porc_paralizadas = 0
+        porc_finalizadas = 0
+        porc_activas = 0
     certificados = Certificados.objects.filter(fecha__year=ano)
     cant_cert = len(certificados)
-    monto_cert = certificados.aggregate(Sum('uvi'))['uvi__sum']/1000
+    try:
+        monto_cert = certificados.aggregate(Sum('uvi'))['uvi__sum']/1000
+    except:
+        monto_cert = 0
     
     data = Certificados.objects.filter(fecha__year=ano)
     # Grafico de linea ideal para mostrar la evolución de montos certificados por fecha
@@ -52,28 +60,38 @@ def index(request):
     # Grafico de arbol ideal para mostrar la evolución de montos certificados por clase/empresa/obra/certificado
     dataSun = data.values_list('obra__institucion__clase__name','obra__institucion__clase__subname','obra__empresa__name','obra__institucion__name','obra__monto_uvi').annotate(cantidad=Sum('uvi'))
     dfSun = pd.DataFrame(dataSun, columns=['clase','subclase','empresa','obra','monto','uvi'])
-    fig = px.sunburst(dfSun, path=['clase','subclase','empresa','obra','uvi'], values='monto',
-                    color='monto', hover_data=['subclase'],
-                    color_continuous_scale='plasma',
-                    color_continuous_midpoint=np.average(dfSun['uvi']/dfSun['monto'], weights=dfSun['monto']),
-                    title='Certificados/presupuesto')
-    sun = fig.to_html()
+    try:
+        media =  dfSun['uvi']/dfSun['monto']
+        fig = px.sunburst(dfSun, path=['clase','subclase','empresa','obra','uvi'], values='monto',
+                        color='monto', hover_data=['subclase'],
+                        color_continuous_scale='plasma',
+                        color_continuous_midpoint=np.average(media, weights=dfSun['monto']),
+                        title='Certificados/presupuesto')
+        sun = fig.to_html()
+    except:
+        sun = ''
     # Grafico de arbol ideal para mostrar la evolución de montos certificados por clase/obra/certificado
     dfTreemap = dfSun
-    dfTreemap['avance'] = round(dfTreemap['uvi']/dfTreemap['monto']*100,2)
-    fig = px.treemap(dfTreemap, path=[px.Constant("Todas las Empresas"), 'empresa','obra','monto','avance'], values='avance',
-                    color='avance', hover_data=['empresa'],
-                    color_continuous_scale='blues',
-                    color_continuous_midpoint=np.average(dfTreemap['avance'], weights=dfTreemap['monto']),
-                    title='Avance de Obras agrupado por Empresa')
-    fig.update_layout(margin = dict(t=50, l=25, r=25, b=25))
-    Treemap = fig.to_html()
+    try:
+        dfTreemap['avance'] = round(dfTreemap['uvi']/dfTreemap['monto']*100,2)
+        fig = px.treemap(dfTreemap, path=[px.Constant("Todas las Empresas"), 'empresa','obra','monto','avance'], values='avance',
+                        color='avance', hover_data=['empresa'],
+                        color_continuous_scale='blues',
+                        color_continuous_midpoint=np.average(dfTreemap['avance'], weights=dfTreemap['monto']),
+                        title='Avance de Obras agrupado por Empresa')
+        fig.update_layout(margin = dict(t=50, l=25, r=25, b=25))
+        Treemap = fig.to_html()
+    except:
+        Treemap = ''
     # Grafico de caja y bigotes para mostrar la evolución de coheficiente de avance por obra
     dataBoxplot = data.values_list('obra__empresa__name','obra__institucion__name','avance_acum_proy','avance_acum_med').annotate(cantidad=Sum('uvi'))
     dfBoxplot = pd.DataFrame(dataBoxplot, columns=['empresa','obra','av_proy','av_real','count'])
-    dfBoxplot['coheficiente'] = round(dfBoxplot['av_real'] / dfBoxplot['av_proy'],2)
-    fig = px.box(dfBoxplot, x="empresa", y="coheficiente", points="all",title='Coheficientes de Avance por Empresa')
-    boxplot = fig.to_html()
+    try:
+        dfBoxplot['coheficiente'] = round(dfBoxplot['av_real'] / dfBoxplot['av_proy'],2)
+        fig = px.box(dfBoxplot, x="empresa", y="coheficiente", points="all",title='Coheficientes de Avance por Empresa')
+        boxplot = fig.to_html()
+    except:
+        boxplot = ''
 
     context = {
         'certificados': certificados,
@@ -93,18 +111,6 @@ def index(request):
     }
     return render(request, 'soc/index.html', context)
 
-def chart(request):
-    data = Certificados.objects.all()
-    
-    fig = px.line(
-        x = data.values_list('fecha', flat=True),
-        y = data.values_list('uvi', flat=True),
-        labels = {'x': 'Fecha', 'y': 'UVIs'},
-        title = 'UVIs por fecha'
-    )
-    chart = fig.to_html()
-
-    return render(request, 'soc/dashboard.html', {'chart': chart})
 
 # Div Fondo Sustitución
 @permission_required('mioc.add_empresapoliza')
@@ -701,3 +707,69 @@ def lista_dispo_inspector_obra(request, obra_id):
         return render(request, 'soc/dispo/dispo_inspector_lista.html', {'error': error_message})
     except Exception as e:
         return render(request, 'soc/dispo/dispo_inspector_lista.html', {'error': 'Ocurrio un error inesperado.'})
+
+# Inspección de Obras
+
+def crear_actas_obras(request):
+    if request.method == 'GET':
+        form = ActaMedicionForm
+        return render(request, 'soc/medicion/actas_obras_crear.html', {
+            'form': form
+        })
+    else:
+        form = ActaMedicionForm(request.POST)
+        try:
+            if form.is_valid():
+                dispo_inspector = form.save(commit=False)
+                dispo_inspector.user = request.user
+                dispo_inspector.save()
+                messages.success(request, f'Nueva disposicion creada!')
+                return redirect('medicion')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'soc/medicion/actas_obras_crear.html', {'form': form, 'error': error_message})
+    return render(request, 'soc/medicion/actas_obras_crear.html')
+
+def editar_actas_obras(request, pk):
+    acta = get_object_or_404(ActaMedicion, pk=pk)
+    if request.method == 'GET':
+        form = ActaMedicionFormEdit(instance=acta)
+        return render(request, 'soc/medicion/actas_obras_editar.html', {
+            'form': form
+        })
+    else:
+        form = ActaMedicionFormEdit(request.POST, instance=acta)
+        try:
+            if form.is_valid():
+                dispo_inspector = form.save(commit=False)
+                dispo_inspector.user = request.user
+                dispo_inspector.save()
+                messages.success(request, f'Medición {acta} editada!')
+                return redirect('medicion')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'soc/medicion/actas_obras_editar.html', {'form': form, 'error': error_message})
+
+def borrar_actas_obras(request, pk):
+    acta = get_object_or_404(ActaMedicion, pk=pk)
+    acta.delete()
+    messages.success(request, f'Medición {acta} eliminada!')
+    return redirect('medicion')
+
+def lista_actas_obras(request):
+    actas = ActaMedicion.objects.all().order_by('-acta_nro')
+    page = request.GET.get('page',1)
+    try:
+        paginator = Paginator(actas, 5)
+        actas = paginator.page(page)
+    except:
+        raise Http404
+    queryset = request.GET.get('buscar')
+    if queryset:
+        actas = ActaMedicion.objects.filter(
+            Q(obra__institucion__name__icontains=queryset) |
+            Q(acta_nro__icontains=queryset) |
+            Q(periodo__icontains=queryset) |
+            Q(user__username__icontains=queryset),
+        ).distinct().order_by('id',)
+    return render(request, 'soc/medicion/actas_obras_lista.html', {'entity': actas, 'paginator': paginator })

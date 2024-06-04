@@ -1,7 +1,7 @@
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from django.contrib import admin
-from .models import (ActaTipo, ActasObras, Certificados, DispoInspector, Empresas, Estados, Location,Clases,Instituciones, Memorias, Polizas,Titulos,Inspectores,Obras,Rubros,
+from .models import (ActaMedicion, ActaTipo, ActasObras, Certificados, DispoInspector, Empresas, Estados, Location,Clases,Instituciones, Memorias, Polizas,Titulos,Inspectores,Obras,Rubros,
                     Subrubros,Presupuestos,PresupuestosSubrubros,Uvis,Unidades,EmpresaPoliza)
 
 # Register your models here.
@@ -147,3 +147,7 @@ admin.site.register(Memorias,MemoriasAdmin)
 class DispoInspectorAdmin(admin.ModelAdmin):
     list_display = ('dispo','inspector')
 admin.site.register(DispoInspector,DispoInspectorAdmin)
+
+class ActaMedicionAdmin(admin.ModelAdmin):
+    list_display = ('obra','acta_nro','periodo','user')
+admin.site.register(ActaMedicion,ActaMedicionAdmin)

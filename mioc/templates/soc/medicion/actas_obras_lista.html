@@ -1,0 +1,101 @@
+{% extends 'layouts/base.html' %}
+{% block content %}
+{% block title %}Actas de Medición{% endblock %}
+<script>
+    function myFunction() {
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: "Deleted!",
+                    text: "Your file has been deleted.",
+                    icon: "success"
+                });
+            }
+        });
+    }
+</script>
+<main class="container py-5">
+    <h1 class="display-3 text-center fw-medium">Actas de Medición</h1>
+    <br>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-11 search">
+                <form method="get">
+                    <div id="custom-search-input">
+                        <div class="input-group col-md-12">
+                            <input type="text" class="form-control" placeholder="Ingrese palabras claves..."
+                                name="buscar" value="{{ request.GET.buscar }}">
+                            <span class="input-group-list">
+                                <i class="icon icon-search"></i>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-search"></i> Buscar
+                                </button>
+                            </span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            {% if perms.mioc.add_certificados %}
+            <div class="col-1">
+                <a href="{% url 'nueva_medicion' %}" type="" class="btn btn-outline-secondary">
+                    <i class="bi bi-plus-lg"></i>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <hr size="5" color="grey" noshade>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-success">
+                <th>#</th>
+                <th>Cod Obra</th>
+                <th>Obra</th>
+                <th>Periodo certificado</th>
+                <th>Nro Acta</th>
+                <th>Creado</th>
+                <th>Modificado</th>
+                <th>Acciones</th>
+            </thead>
+            <tbody>
+                {% for actas in entity %}
+                <tr>
+                    <td class="fw-semibold">{{ forloop.counter }}</td>
+                    <td >{{ actas.obra.codObra }}</td>
+                    <td>{{ actas.obra.institucion.name }}</td>
+                    <td>{{ actas.periodo|date:"F y" }}</td>
+                    <td>{{ actas.acta_nro }}</td>
+                    <td>{{ actas.cargaCert }} el {{ actas.creado }}</td>
+                    <td>{% if actas.ultimo_editor == None %}❌{% else %} {{ actas.ultimo_editor }} el {{ actas.ultima_modificacion }} {% endif %}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">
+                            <a type="button" class="btn btn-outline-info" href="#"><i class="bi bi-search"></i></a>
+                            <a type="button" class="btn btn-outline-info"
+                                href="#"><i class="bi bi-funnel"></i></a>
+                            {% if perms.mioc.change_certificados %}
+                            <a type="button" class="btn btn-outline-success"
+                                href="#"><i class="bi bi-pencil-square"></i></a>
+                            {% endif %}
+                            {% if perms.mioc.delete_certificados %}
+                            <a type="button" class="btn btn-outline-danger"
+                                href="#"><i class="bi bi-trash3"></i></a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'layouts/paginator.html' %}
+</main>
+
+{% endblock %}

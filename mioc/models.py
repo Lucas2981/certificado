@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models import Sum
 from django.contrib.auth.models import User
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from django.forms import ValidationError
 from django.db.models import F, Q
 import requests
@@ -138,17 +138,15 @@ class Empresas(models.Model):
 
 
 class Inspectores(models.Model):
-    id = models.BigAutoField(
-        auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
     name = models.CharField(max_length=200, verbose_name='Nombres')
     surname = models.CharField(max_length=200, verbose_name='Apellidos')
-    titulo = models.ForeignKey(
-        Titulos, on_delete=models.CASCADE, verbose_name='Título')
+    titulo = models.ForeignKey(Titulos, on_delete=models.CASCADE, verbose_name='Título')
     dni = models.CharField(max_length=8, verbose_name='DNI')
     telephone = models.CharField(max_length=50, verbose_name='Teléfono')
     email = models.EmailField(verbose_name='Correo')
-    fullname = models.CharField(
-        max_length=200, editable=False, blank=True, null=True, verbose_name='Inspector')
+    fullname = models.CharField(max_length=200, editable=False, blank=True, null=True, verbose_name='Inspector')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Usuario', blank=True, null=True)
 
     class Meta:
         verbose_name = 'Inspector'
@@ -231,8 +229,6 @@ class Obras(models.Model):
     expedientes = models.CharField(max_length=30, verbose_name='Expediente')
     codObra = models.CharField(max_length=200, verbose_name='Cod. Obra', editable=False, blank=True, null=True)
     institucion = models.ForeignKey(Instituciones, on_delete=models.CASCADE, verbose_name='Institución')
-    # inspector = models.ForeignKey(
-    #     Inspectores, on_delete=models.CASCADE, verbose_name='Inspector')
     empresa = models.ForeignKey(Empresas, on_delete=models.CASCADE, verbose_name='Empresa', blank=True, null=True)
     inicio = models.DateField(verbose_name='Fecha de inicio')
     uvi = models.ForeignKey(Uvis, on_delete=models.CASCADE,verbose_name='Uvi', editable=False, blank=True, null=True)
@@ -551,6 +547,21 @@ class Certificados(models.Model):
             raise
         super().save(*args, **kwargs)
 
+
+class ActaMedicion(models.Model):
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    obra = models.ForeignKey(Obras, on_delete=models.CASCADE, verbose_name='Obra')
+    acta_nro = models.PositiveIntegerField(verbose_name='N° Acta')
+    periodo = models.DateField(verbose_name='Periodo de medición')
+    registro = models.DateField(verbose_name='Fecha de registro', auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Cargado por', default=1)
+
+    class Meta:
+        verbose_name = 'Acta de Medición'
+        verbose_name_plural = 'Actas de Medición'
+
+    def __str__(self):
+        return f'{self.acta_nro} - {self.user}' 
 
 class ActaTipo(models.Model):
     id = models.BigAutoField(

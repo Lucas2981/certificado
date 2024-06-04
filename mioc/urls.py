@@ -44,4 +44,9 @@ urlpatterns = [
     path('obras/dispo/<int:pk>/elimiar/',login_required(views.borrar_dispo_inspector), name='eliminar_dispo_inspe'),
     path('obras/dispo/',login_required(views.lista_dispo_inspector), name='dispo_inspe'),
     path('obras/dispo/<int:obra_id>/',login_required(views.lista_dispo_inspector_obra), name='dispo_inspe_obra'),
+    # Mediciones
+    path('obras/medicion/nueva',login_required(views.crear_actas_obras), name='nueva_medicion'),
+    path('obras/medicion/<int:pk>/editar/',login_required(views.editar_actas_obras), name='editar_medicion'),
+    path('obras/medicion/<int:pk>/elimiar/',login_required(views.borrar_actas_obras), name='eliminar_medicion'),
+    path('obras/medicion/',login_required(views.lista_actas_obras), name='medicion'),
 ]

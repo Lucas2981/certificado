@@ -1,5 +1,5 @@
 from django.forms import DateInput, ModelForm
-from .models import ActasObras, DispoInspector, Memorias, Obras, EmpresaPoliza, Certificados, Polizas, Instituciones
+from .models import ActaMedicion, ActasObras, DispoInspector, Memorias, Obras, EmpresaPoliza, Certificados, Polizas, Instituciones
 from django import forms
 # llamar librerias de admin para autocompletar
 from django.contrib.admin.widgets import AutocompleteSelect
@@ -65,8 +65,6 @@ class CertificadoViewForm(ModelForm):
             'ultimo_editor': forms.Select(attrs={"readonly": True}),
             'ultima_modificacion': forms.TextInput(attrs={"readonly": True}),
         }
-        
-        
 
 class ActasObrasForm(ModelForm):
     class Meta:
@@ -104,3 +102,14 @@ class DispoInspFormEdit(ModelForm):
     class Meta:
         model = DispoInspector
         exclude = ['id', 'user']
+
+class ActaMedicionForm(ModelForm):
+    class Meta:
+        model = ActaMedicion
+        fields = ['obra', 'acta_nro', 'periodo']
+        widgets = {'periodo': forms.DateInput(
+            attrs={'class': 'form-control', 'type': 'date'})}
+class ActaMedicionFormEdit(ModelForm):
+    class Meta:
+        model = ActaMedicion
+        fields = ['obra', 'acta_nro', 'periodo']
