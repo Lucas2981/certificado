@@ -1,3 +1,4 @@
+from itertools import count
 from django.utils import timezone
 from django.forms import ValidationError
 from django.http import Http404
@@ -11,8 +12,11 @@ import numpy as np
 from . models import ActasObras, Certificados, DispoInspector, Memorias, Obras, EmpresaPoliza, Polizas
 from . forms import ActasObrasFormEdit, CertificadoForm, CertificadoFormEdit, CertificadoViewForm, DispoInspForm, DispoInspFormEdit, MemoriaForm, ObraFormAll, ObraFormActas, EmpresaPolizaForm, ActasObrasForm, PolizaForm
 from datetime import datetime, date
-import plotly.express as px
 
+from plotly.offline import plot
+import plotly.express as px
+import plotly.graph_objects as go
+import pandas as pd
 def index(request):
     ano = date.today().year
     actas = ActasObras.objects.filter(fecha__year=ano)
@@ -32,34 +36,44 @@ def index(request):
     certificados = Certificados.objects.filter(fecha__year=ano)
     cant_cert = len(certificados)
     monto_cert = certificados.aggregate(Sum('uvi'))['uvi__sum']/1000
-    data = Certificados.objects.all()
-    fig = px.line(
-        x = data.values_list('fecha', flat=True),
-        y = data.values_list('uvi', flat=True),
-        labels = {'x': 'Fecha', 'y': 'UVIs'},
-        title = 'UVIs por fecha'
-    )
-    chart = fig.to_html()
-    df = px.data.gapminder().query("year == 2007")
-    fig = px.sunburst(df, path=['continent', 'country'], values='pop',
-                      color='lifeExp', hover_data=['iso_alpha'],
-                      color_continuous_scale='RdBu',
-                      color_continuous_midpoint=np.average(df['lifeExp'], weights=df['pop']),
-                      title='Ejemplo para montos por empresa/obra')
-    chart_2 = fig.to_html()
-
-    df = px.data.gapminder().query("year == 2007")
-    fig = px.treemap(df, path=[px.Constant("world"), 'continent', 'country'], values='pop',
-                    color='lifeExp', hover_data=['iso_alpha'],
-                    color_continuous_scale='RdBu',
-                    color_continuous_midpoint=np.average(df['lifeExp'], weights=df['pop']),
-                    title='Ejemplo 2 para montos por empresa/obra')
-    fig.update_layout(margin = dict(t=50, l=25, r=25, b=25))
-    chart_3 = fig.to_html()
     
-    df = px.data.tips()
-    fig = px.box(df, x="time", y="total_bill", points="all",title='Ejemplo para coheficiente de avance por inspector')
-    chart_4 = fig.to_html()
+    data = Certificados.objects.filter(fecha__year=ano)
+    # Grafico de linea ideal para mostrar la evolución de montos certificados por fecha
+    dataBar = data.values_list('obra__institucion__name','fecha').annotate(cantidad=Sum('uvi'))
+    dfBar = pd.DataFrame(dataBar, columns=['obra','fecha','uvi'])
+    fig = go.Figure(
+        data=[go.Bar(x=dfBar['fecha'],y=dfBar['uvi'])],
+        layout=go.Layout(
+        title_text='Evolución de montos certificados por fecha',
+        xaxis_title='Fecha',
+        yaxis_title='Monto en miles de UVIs',
+    ))
+    bar = fig.to_html()
+    # Grafico de arbol ideal para mostrar la evolución de montos certificados por clase/empresa/obra/certificado
+    dataSun = data.values_list('obra__institucion__clase__name','obra__institucion__clase__subname','obra__empresa__name','obra__institucion__name','obra__monto_uvi').annotate(cantidad=Sum('uvi'))
+    dfSun = pd.DataFrame(dataSun, columns=['clase','subclase','empresa','obra','monto','uvi'])
+    fig = px.sunburst(dfSun, path=['clase','subclase','empresa','obra','uvi'], values='monto',
+                    color='monto', hover_data=['subclase'],
+                    color_continuous_scale='plasma',
+                    color_continuous_midpoint=np.average(dfSun['uvi']/dfSun['monto'], weights=dfSun['monto']),
+                    title='Certificados/presupuesto')
+    sun = fig.to_html()
+    # Grafico de arbol ideal para mostrar la evolución de montos certificados por clase/obra/certificado
+    dfTreemap = dfSun
+    dfTreemap['avance'] = round(dfTreemap['uvi']/dfTreemap['monto']*100,2)
+    fig = px.treemap(dfTreemap, path=[px.Constant("Todas las Empresas"), 'empresa','obra','monto','avance'], values='avance',
+                    color='avance', hover_data=['empresa'],
+                    color_continuous_scale='blues',
+                    color_continuous_midpoint=np.average(dfTreemap['avance'], weights=dfTreemap['monto']),
+                    title='Avance de Obras agrupado por Empresa')
+    fig.update_layout(margin = dict(t=50, l=25, r=25, b=25))
+    Treemap = fig.to_html()
+    # Grafico de caja y bigotes para mostrar la evolución de coheficiente de avance por obra
+    dataBoxplot = data.values_list('obra__empresa__name','obra__institucion__name','avance_acum_proy','avance_acum_med').annotate(cantidad=Sum('uvi'))
+    dfBoxplot = pd.DataFrame(dataBoxplot, columns=['empresa','obra','av_proy','av_real','count'])
+    dfBoxplot['coheficiente'] = round(dfBoxplot['av_real'] / dfBoxplot['av_proy'],2)
+    fig = px.box(dfBoxplot, x="empresa", y="coheficiente", points="all",title='Coheficientes de Avance por Empresa')
+    boxplot = fig.to_html()
 
     context = {
         'certificados': certificados,
@@ -72,10 +86,10 @@ def index(request):
         'porc_paralizadas': porc_paralizadas,
         'porc_finalizadas': porc_finalizadas,
         'porc_activas': porc_activas,
-        'chart': chart,
-        'chart_2': chart_2,
-        'chart_3': chart_3,
-        'chart_4': chart_4
+        'bar': bar,
+        'sun':sun,
+        'Treemap': Treemap,
+        'boxplot': boxplot
     }
     return render(request, 'soc/index.html', context)
 

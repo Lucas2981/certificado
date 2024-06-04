@@ -4,8 +4,8 @@
         <h2 class="accordion-header">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
                 data-bs-target="#flush-collapseOne" aria-expanded="false" aria-controls="flush-collapseOne">
-                <i class="bi bi-speedometer2" style="font-size: 2rem; color: #3c52d1;"></i>
-                <span class="ps-3">Panel Dashboard
+                <i class="bi bi-bar-chart" style="font-size: 2rem; color: #3c52d1;"></i>
+                <span class="ps-3">Análisis Económico Simple
             </button>
         </h2>
         <div id="flush-collapseOne" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
@@ -13,44 +13,36 @@
                 <!-- Componentes # -->
                 <div class="row row-cols-2">
                     <div class="col">
-                        {{ chart|safe }}
+                        {{ bar|safe }}
                     </div>
                     <div class="col">
-                        {{ chart_3|safe }}
+                        {{ sun|safe }}
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+    <div class="accordion-item">
+        <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                data-bs-target="#flush-collapsetwo" aria-expanded="false" aria-controls="flush-collapsetwo">
+                <i class="bi bi-speedometer" style="font-size: 2rem; color: #3c52d1;"></i>
+                <span class="ps-3">Evolución de Obras
+            </button>
+        </h2>
+        <div id="flush-collapsetwo" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+            <div class="accordion-body">
                 <div class="row row-cols-2">
                     <div class="col">
-                        {{ chart_4|safe }}
+                        {{ boxplot|safe }}
                     </div>
                     <div class="col">
-                        {{ chart_2|safe }}
+                        {{ Treemap|safe }}
                     </div>
-                </div>
-                <!-- Tabla -->
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-info">
-                            <th>N° Cert</th>
-                            <th>Periodo</th>
-                            <th>AV. Acum. Real</th>
-                            <th>AV. Acum. Proy.</th>
-                            <th>C. Avance</th>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>5</td>
-                                </td>
-                                <td>Marzo 24</td>
-                                <td>16.87%</td>
-                                <td>15.65%</td>
-                                <td>🟢⬆️ Sobre la curva</td>
-                            </tr>
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
 <hr>

@@ -1,6 +1,7 @@
 {% extends 'layouts/base.html' %}
 {% block content %}
 {% block title %}Listado de Obra{% endblock %}
+{% load humanize %}
 <main class="container py-5">
     <h1 class="display-3 text-center fw-medium">Listado de Obras</h1>
     <br>
@@ -48,7 +49,7 @@
                 <th>Empresa</th>
                 <th>Dpto</th>
                 <th>Finaliza</th>
-                <th>Inspector</th>
+                <th>Monto en UVI</th>
                 <th>Acciones</th>
             </thead>
             <tbody>
@@ -60,7 +61,7 @@
                     <td>{{obra.empresa.name}}</td>
                     <td>{{obra.institucion.location.NOMDEPTO}}</td>
                     <td>{{obra.vencimiento_contractual}}</td>
-                    <td>{{obra.inspector.fullname}}</td>
+                    <td>{{obra.monto_uvi|intcomma}}</td>
                     <td>
                         <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">
                             {% if perms.mioc.view_obras %}
