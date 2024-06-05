@@ -52,10 +52,10 @@
                                     </thead>
                                     <tbody>
                                         {% for z in certificados %}
-                                        {% if z.obra.codObra == x.codObra %}
+                                        {% if z.obra.codObra == x.obra.codObra %}
                                         <tr>
-                                            <td>{{ z.nro_cert }}</td> </td>
-                                            <td>{{ z.periodo }}</td>
+                                            <td>{{ z.acta.acta }}</td> </td>
+                                            <td>{{ z.acta.periodo|date:"F y" }}</td>
                                             <td>{{ z.avance_acum_med }}%</td>
                                             <td>{{ z.avance_acum_proy }}%</td>
                                             <td>{% if z.coef_avance == True %}🟢⬆️ Sobre la curva{% else %}🔴⬇️ Bajo la curva{% endif %}</td>

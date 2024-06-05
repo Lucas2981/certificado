@@ -49,10 +49,10 @@
             <tbody>
                 {% for certificado in certificados %}
                 <tr>
-                    <td class="fw-semibold">{{ certificado.nro_cert }}</td>
+                    <td class="fw-semibold">{{ certificado.acta.acta }}</td>
                     <td >{{ certificado.expediente }}</td>
                     <td>{{certificado.uvi}}</td>
-                    <td>{{ certificado.periodo }}</td>
+                    <td>{{ certificado.acta.periodo|date:"F y" }}</td>
                     <td>{% if certificado.coef_avance == True %}<i class="bi bi-graph-down-arrow" style="color: red;"></i> Bajo la curva{% else %}<i class="bi bi-graph-up-arrow" style="color: green;"></i> Sobre la curva{% endif %}</td>
                     <td>{{ certificado.cargaCert }} el {{ certificado.creado }}</td>
                     <td>{% if certificado.ultimo_editor == None %}❌{% else %} {{ certificado.ultimo_editor }} el {{ certificado.ultima_modificacion }} {% endif %}</td>

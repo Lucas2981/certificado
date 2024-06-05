@@ -33,38 +33,30 @@ class EmpresaPolizaForm(ModelForm):
 class CertificadoForm(ModelForm):
     class Meta:
         model = Certificados
-        fields = ['expediente','obra', 'nro_cert', 'fecha_acta', 'fecha', 'uvi','avance_acum_proy']
-        widgets = {'fecha': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-                'fecha_acta': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-                'expediente': forms.TextInput(attrs={'placeholder': 'EX-20XX-00XXXX- -CAT-MIOC'})}
-
-class CertificadoFormEdit(ModelForm):
-    class Meta:
-        model = Certificados
-        fields = ['expediente','obra', 'nro_cert', 'fecha_acta', 'fecha', 'uvi']
-        # fields = '__all__'
+        fields = ['expediente','acta', 'uvi','avance_acum_proy']
+        widgets = {'expediente': forms.TextInput(attrs={'placeholder': 'EX-20XX-00XXXX- -CAT-MIOC'})}
 
 class CertificadoViewForm(ModelForm):
     class Meta:
         model = Certificados
         fields = '__all__'
-        widgets = {
-            "expediente": forms.TextInput(attrs={"readonly": True}),
-            "obra": forms.Select(attrs={"readonly": True}),
-            "nro_cert": forms.TextInput(attrs={"readonly": True}),
-            "codCert": forms.TextInput(attrs={"readonly": True}),
-            "fecha_acta": forms.TextInput(attrs={"readonly": True}),
-            "fecha": forms.TextInput(attrs={"readonly": True}),
-            "uvi": forms.TextInput(attrs={"readonly": True}),
-            "uvi_acum": forms.TextInput(attrs={"readonly": True}),
-            "avance_acum_proy": forms.TextInput(attrs={"readonly": True}),
-            "avance_acum_med": forms.TextInput(attrs={"readonly": True}),
-            "coef_avance": forms.TextInput(attrs={"readonly": True}),
-            "cargaCert": forms.Select(attrs={"readonly": True}),
-            "periodo": forms.TextInput(attrs={"readonly": True}),
-            'ultimo_editor': forms.Select(attrs={"readonly": True}),
-            'ultima_modificacion': forms.TextInput(attrs={"readonly": True}),
-        }
+#         widgets = {
+#             "expediente": forms.TextInput(attrs={"readonly": True}),
+#             "obra": forms.Select(attrs={"readonly": True}),
+#             "nro_cert": forms.TextInput(attrs={"readonly": True}),
+#             "codCert": forms.TextInput(attrs={"readonly": True}),
+#             "fecha_acta": forms.TextInput(attrs={"readonly": True}),
+#             "fecha": forms.TextInput(attrs={"readonly": True}),
+#             "uvi": forms.TextInput(attrs={"readonly": True}),
+#             "uvi_acum": forms.TextInput(attrs={"readonly": True}),
+#             "avance_acum_proy": forms.TextInput(attrs={"readonly": True}),
+#             "avance_acum_med": forms.TextInput(attrs={"readonly": True}),
+#             "coef_avance": forms.TextInput(attrs={"readonly": True}),
+#             "cargaCert": forms.Select(attrs={"readonly": True}),
+#             "periodo": forms.TextInput(attrs={"readonly": True}),
+#             'ultimo_editor': forms.Select(attrs={"readonly": True}),
+#             'ultima_modificacion': forms.TextInput(attrs={"readonly": True}),
+#         }
 
 class ActasObrasForm(ModelForm):
     class Meta:
@@ -106,10 +98,10 @@ class DispoInspFormEdit(ModelForm):
 class ActaMedicionForm(ModelForm):
     class Meta:
         model = ActaMedicion
-        fields = ['obra', 'acta_nro', 'periodo']
+        fields = ['obra', 'acta', 'periodo']
         widgets = {'periodo': forms.DateInput(
             attrs={'class': 'form-control', 'type': 'date'})}
 class ActaMedicionFormEdit(ModelForm):
     class Meta:
         model = ActaMedicion
-        fields = ['obra', 'acta_nro', 'periodo']
+        fields = ['obra', 'acta', 'periodo']

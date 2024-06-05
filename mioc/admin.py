@@ -123,7 +123,7 @@ class EmpresaPolizaAdmin(admin.ModelAdmin):
 admin.site.register(EmpresaPoliza,EmpresaPolizaAdmin)
 
 class CertificadoAdmin(admin.ModelAdmin):
-    list_display = ('codCert','id','obra','nro_cert','periodo','uvi','ultima_modificacion')
+    list_display = ('id','acta','uvi','ultima_modificacion')
 admin.site.register(Certificados,CertificadoAdmin)
 
 class ActaTipoAdmin(admin.ModelAdmin):
@@ -149,5 +149,5 @@ class DispoInspectorAdmin(admin.ModelAdmin):
 admin.site.register(DispoInspector,DispoInspectorAdmin)
 
 class ActaMedicionAdmin(admin.ModelAdmin):
-    list_display = ('obra','acta_nro','periodo','user')
+    list_display = ('obra','acta','periodo','user')
 admin.site.register(ActaMedicion,ActaMedicionAdmin)

@@ -10,7 +10,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 import numpy as np
 from . models import ActaMedicion, ActasObras, Certificados, DispoInspector, Memorias, Obras, EmpresaPoliza, Polizas
-from . forms import ActaMedicionForm, ActaMedicionFormEdit, ActasObrasFormEdit, CertificadoForm, CertificadoFormEdit, CertificadoViewForm, DispoInspForm, DispoInspFormEdit, MemoriaForm, ObraFormAll, ObraFormActas, EmpresaPolizaForm, ActasObrasForm, PolizaForm
+from . forms import ActaMedicionForm, ActaMedicionFormEdit, ActasObrasFormEdit, CertificadoForm, CertificadoViewForm, DispoInspForm, DispoInspFormEdit, MemoriaForm, ObraFormAll, ObraFormActas, EmpresaPolizaForm, ActasObrasForm, PolizaForm
 from datetime import datetime, date
 
 from plotly.offline import plot
@@ -38,16 +38,16 @@ def index(request):
         porc_paralizadas = 0
         porc_finalizadas = 0
         porc_activas = 0
-    certificados = Certificados.objects.filter(fecha__year=ano)
+    certificados = Certificados.objects.filter(acta__periodo__year=ano)
     cant_cert = len(certificados)
     try:
         monto_cert = certificados.aggregate(Sum('uvi'))['uvi__sum']/1000
     except:
         monto_cert = 0
     
-    data = Certificados.objects.filter(fecha__year=ano)
+    data = Certificados.objects.filter(acta__periodo__year=ano)
     # Grafico de linea ideal para mostrar la evolución de montos certificados por fecha
-    dataBar = data.values_list('obra__institucion__name','fecha').annotate(cantidad=Sum('uvi'))
+    dataBar = data.values_list('acta__obra__institucion__name','acta__periodo').annotate(cantidad=Sum('uvi'))
     dfBar = pd.DataFrame(dataBar, columns=['obra','fecha','uvi'])
     fig = go.Figure(
         data=[go.Bar(x=dfBar['fecha'],y=dfBar['uvi'])],
@@ -58,7 +58,7 @@ def index(request):
     ))
     bar = fig.to_html()
     # Grafico de arbol ideal para mostrar la evolución de montos certificados por clase/empresa/obra/certificado
-    dataSun = data.values_list('obra__institucion__clase__name','obra__institucion__clase__subname','obra__empresa__name','obra__institucion__name','obra__monto_uvi').annotate(cantidad=Sum('uvi'))
+    dataSun = data.values_list('acta__obra__institucion__clase__name','acta__obra__institucion__clase__subname','acta__obra__empresa__name','acta__obra__institucion__name','acta__obra__monto_uvi').annotate(cantidad=Sum('uvi'))
     dfSun = pd.DataFrame(dataSun, columns=['clase','subclase','empresa','obra','monto','uvi'])
     try:
         media =  dfSun['uvi']/dfSun['monto']
@@ -84,7 +84,7 @@ def index(request):
     except:
         Treemap = ''
     # Grafico de caja y bigotes para mostrar la evolución de coheficiente de avance por obra
-    dataBoxplot = data.values_list('obra__empresa__name','obra__institucion__name','avance_acum_proy','avance_acum_med').annotate(cantidad=Sum('uvi'))
+    dataBoxplot = data.values_list('acta__obra__empresa__name','acta__obra__institucion__name','avance_acum_proy','avance_acum_med').annotate(cantidad=Sum('uvi'))
     dfBoxplot = pd.DataFrame(dataBoxplot, columns=['empresa','obra','av_proy','av_real','count'])
     try:
         dfBoxplot['coheficiente'] = round(dfBoxplot['av_real'] / dfBoxplot['av_proy'],2)
@@ -241,7 +241,7 @@ def lista_poliza(request):
 # Div. Carga de Certificados
 @permission_required('mioc.view_certificados')
 def lista_certificados(request):
-    certificados = Certificados.objects.all().order_by('obra__codObra','nro_cert')
+    certificados = Certificados.objects.all().order_by('acta__obra__codObra','acta__acta')
     page = request.GET.get('page',1)
     try:
         paginator = Paginator(certificados,5)
@@ -255,22 +255,22 @@ def lista_certificados(request):
             Q(obra__inspector__fullname__icontains=queryset) |
             Q(nro_cert__icontains=queryset) |
             Q(periodo__icontains=queryset),
-        ).distinct().order_by('nro_cert',)
+        ).distinct().order_by('acta__acta',)
     return render(request, 'soc/certificados/certificado_lista.html', {'entity': certificados, 'paginator':paginator})
 @permission_required('mioc.view_certificados')
 def lista_certificados_obra(request, obra_id):
-    certificados = Certificados.objects.filter(obra_id=obra_id).order_by('nro_cert')
+    certificados = Certificados.objects.filter(acta__obra_id=obra_id).order_by('acta__acta')
     try:
-        obra = certificados.values('obra__institucion__name').annotate(cantidad=Sum('nro_cert'))
+        obra = certificados.values('acta__obra__institucion__name').annotate(cantidad=Sum('acta__acta'))
         obra = list(obra)
-        obra = obra[0]['obra__institucion__name'].title()
+        obra = obra[0]['acta__obra__institucion__name'].title()
         queryset = request.GET.get('buscar')
         if queryset:
             certificados = certificados.filter(
                 Q(obra__inspector__fullname__icontains=queryset) |
                 Q(nro_cert__icontains=queryset) |
                 Q(periodo__icontains=queryset),
-            ).distinct().order_by('nro_cert',)
+            ).distinct().order_by('acta__acta',)
         if not certificados.exists():
             context = {
                 'obra': obra,
@@ -311,7 +311,7 @@ def crear_certificado(request):
 def editar_certificado(request, pk):
     if request.method == 'GET':
         certif = get_object_or_404(Certificados, pk=pk)
-        form = CertificadoFormEdit(instance=certif)
+        form = CertificadoForm(instance=certif)
         return render(request, 'soc/certificados/certificado_editar.html', {
             'form': form,
         })
@@ -320,10 +320,10 @@ def editar_certificado(request, pk):
             certif = get_object_or_404(Certificados, pk=pk)
             # Inicializar el formulario con valores originales
             initial_data = {
-                'fecha': certif.fecha,
-                'fecha_acta': certif.fecha_acta,
+                'fecha': certif.acta.periodo,
+                # 'fecha_acta': certif.fecha_acta,
             }
-            form = CertificadoFormEdit(request.POST, instance=certif, initial=initial_data)
+            form = CertificadoForm(request.POST, instance=certif, initial=initial_data)
             form.instance.ultimo_editor = request.user
             if form.is_valid():
                 certif.ultima_modificacion = timezone.now()
@@ -337,7 +337,7 @@ def editar_certificado(request, pk):
                 })
         except ValueError:
             certif = get_object_or_404(Certificados, pk=pk)
-            form = CertificadoFormEdit(instance=certif)
+            form = CertificadoForm(instance=certif)
             return render(request, 'soc/certificados/certificado_editar.html', {
                 'form': form,
                 'error': 'Error al editar certificado'
@@ -378,9 +378,9 @@ def lista_actas(request):
 def lista_actas_obra(request,obra_id):
     actas = ActasObras.objects.filter(obra_id=obra_id).order_by('obra__institucion__name')
     try:
-        obra = actas.values('obra__institucion__name').annotate(cantidad=Sum('id'))
+        obra = actas.values('acta__obra__institucion__name').annotate(cantidad=Sum('id'))
         obra = list(obra)
-        obra = obra[0]['obra__institucion__name'].title()
+        obra = obra[0]['acta__obra__institucion__name'].title()
         queryset = request.GET.get('buscar')
         if queryset:
             actas = actas.filter(
@@ -401,9 +401,9 @@ def lista_actas_obra(request,obra_id):
         })
     except ValidationError as e:
         error_message = e.messages[0]
-        return render(request, 'actas.html', {'error': error_message})
+        return render(request, 'soc/actas/actas_lista.html', {'error': error_message})
     except Exception as e:
-        return render(request, 'actas.html', {'error': 'Ocurrió un error inesperado.'})
+        return render(request, 'soc/actas/actas_lista.html', {'error': 'Ocurrió un error inesperado.'})
 @permission_required('mioc.add_actasobras')
 def crear_acta(request):
     if request.method == 'GET':
@@ -589,7 +589,7 @@ def lista_obras(request):
 def detalle_obra(request):
     obras = Obras.objects.all()
     memoria = Memorias.objects.filter(obra__in=obras)
-    certificados = Certificados.objects.filter(obra__in=obras).order_by('nro_cert')
+    certificados = Certificados.objects.filter(acta__obra__in=obras).order_by('acta__acta')
     page = request.GET.get('page',1)
     try:
         paginator = Paginator(obras,10)
@@ -757,7 +757,7 @@ def borrar_actas_obras(request, pk):
     return redirect('medicion')
 
 def lista_actas_obras(request):
-    actas = ActaMedicion.objects.all().order_by('-acta_nro')
+    actas = ActaMedicion.objects.all().order_by('-acta')
     page = request.GET.get('page',1)
     try:
         paginator = Paginator(actas, 5)

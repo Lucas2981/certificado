@@ -72,7 +72,7 @@
                     <td >{{ actas.obra.codObra }}</td>
                     <td>{{ actas.obra.institucion.name }}</td>
                     <td>{{ actas.periodo|date:"F y" }}</td>
-                    <td>{{ actas.acta_nro }}</td>
+                    <td>{{ actas.acta }}</td>
                     <td>{{ actas.cargaCert }} el {{ actas.creado }}</td>
                     <td>{% if actas.ultimo_editor == None %}❌{% else %} {{ actas.ultimo_editor }} el {{ actas.ultima_modificacion }} {% endif %}</td>
                     <td>

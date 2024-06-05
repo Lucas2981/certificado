@@ -69,10 +69,10 @@
             <tbody>
                 {% for certificado in entity %}
                 <tr>
-                    <td class="fw-semibold">{{ certificado.nro_cert }}</td>
+                    <td class="fw-semibold">{{ certificado.acta.acta }}</td>
                     <td >{{ certificado.expediente }}</td>
-                    <td>{{ certificado.obra.institucion.name }}</td>
-                    <td>{{ certificado.periodo }}</td>
+                    <td>{{ certificado.acta.obra.institucion.name }}</td>
+                    <td>{{ certificado.acta.periodo|date:"F y" }}</td>
                     <td>{% if certificado.coef_avance == True %}<i class="bi bi-graph-down-arrow" style="color: red;"></i> Bajo la curva{% else %}<i class="bi bi-graph-up-arrow" style="color: green;"></i> Sobre la curva{% endif %}</td>
                     <td>{{ certificado.cargaCert }} el {{ certificado.creado }}</td>
                     <td>{% if certificado.ultimo_editor == None %}❌{% else %} {{ certificado.ultimo_editor }} el {{ certificado.ultima_modificacion }} {% endif %}</td>
@@ -80,7 +80,7 @@
                         <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">
                             <a type="button" class="btn btn-outline-info" href="{% url 'ver_cert' certificado.pk %}"><i class="bi bi-search"></i></a>
                             <a type="button" class="btn btn-outline-info"
-                                href="{% url 'certificados_obra' certificado.obra_id %}"><i class="bi bi-funnel"></i></a>
+                                href="{% url 'certificados_obra' certificado.acta.obra_id %}"><i class="bi bi-funnel"></i></a>
                             {% if perms.mioc.change_certificados %}
                             <a type="button" class="btn btn-outline-success"
                                 href="{% url 'editar_cert' certificado.pk %}"><i class="bi bi-pencil-square"></i></a>
