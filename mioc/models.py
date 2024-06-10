@@ -20,26 +20,16 @@ token = os.environ.get('API_TOKEN_2')
 
 
 class Location(models.Model):
-    id = models.BigAutoField(
-        auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
-    CODPROV = models.CharField(
-        max_length=2, verbose_name='Código de Provincia')
-    NOMPROV = models.CharField(
-        max_length=20, verbose_name='Nombre de Provincia')
-    CODDEPTO = models.CharField(
-        max_length=3, verbose_name='Código de Departamento')
-    NOMDEPTO = models.CharField(
-        max_length=30, verbose_name='Nombre de Departamento')
-    CODMUNI = models.CharField(
-        max_length=4, verbose_name='Código de Municipio')
-    NOMMUNI = models.CharField(
-        max_length=30, verbose_name='Nombre de Municipio')
-    CODLOC = models.CharField(
-        max_length=3, verbose_name='Código de Localidad')
-    CODAGLO = models.CharField(
-        max_length=4, verbose_name='Código de Aglomerado')
-    NOMLOC = models.CharField(
-        max_length=30, verbose_name='Nombre de Localidad')
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    CODPROV = models.CharField(max_length=2, verbose_name='Código de Provincia')
+    NOMPROV = models.CharField(max_length=20, verbose_name='Nombre de Provincia')
+    CODDEPTO = models.CharField(max_length=3, verbose_name='Código de Departamento')
+    NOMDEPTO = models.CharField(max_length=30, verbose_name='Nombre de Departamento')
+    CODMUNI = models.CharField(max_length=4, verbose_name='Código de Municipio')
+    NOMMUNI = models.CharField(max_length=30, verbose_name='Nombre de Municipio')
+    CODLOC = models.CharField(max_length=3, verbose_name='Código de Localidad')
+    CODAGLO = models.CharField(max_length=4, verbose_name='Código de Aglomerado')
+    NOMLOC = models.CharField(max_length=30, verbose_name='Nombre de Localidad')
 
     class Meta:
         verbose_name = 'Localidad'
@@ -51,11 +41,9 @@ class Location(models.Model):
 
 
 class Clases(models.Model):
-    id = models.BigAutoField(
-        auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
     name = models.CharField(max_length=200, verbose_name='Clase')
-    subname = models.CharField(
-        max_length=200, blank=True, null=True, verbose_name='Subclase')
+    subname = models.CharField(max_length=200, blank=True, null=True, verbose_name='Subclase')
 
     class Meta:
         verbose_name = 'Clase'
@@ -64,20 +52,6 @@ class Clases(models.Model):
 
     def __str__(self):
         return f'{self.name} - {self.subname}'
-
-
-class Estados(models.Model):
-    id = models.BigAutoField(
-        auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
-    name = models.CharField(max_length=200, verbose_name='Estado')
-
-    class Meta:
-        verbose_name = 'Estado'
-        verbose_name_plural = 'Estados'
-        ordering = ['name']
-
-    def __str__(self):
-        return self.name
 
 
 class Instituciones(models.Model):
@@ -261,25 +235,16 @@ class Obras(models.Model):
 
 
 class Polizas(models.Model):
-    codPol = models.CharField(
-        max_length=200, verbose_name='Cod. Poliza', editable=False, unique=True, null=True)
-    obra = models.ForeignKey(
-        Obras, on_delete=models.CASCADE, verbose_name='Obra')
-    tiene_poliza = models.BooleanField(
-        null=True, blank=True, verbose_name='Presenta póliza de sustitución?')
-    acta_fondo_reparo = models.CharField(
-        max_length=30, blank=True, null=True, verbose_name='Póliza de sustitución Fondo de Reparo')
-    poliza_sustitucion = models.IntegerField(
-        null=True, blank=True, verbose_name='N° Póliza Fondo de Reparo')
-    empresa_poliza = models.ForeignKey(
-        EmpresaPoliza, on_delete=models.CASCADE, blank=True, null=True, verbose_name='Empresa aseguradora')
-    monto_asegurado = models.FloatField(
-        null=True, blank=True, verbose_name='Monto asegurado')
+    codPol = models.CharField(max_length=200, verbose_name='Cod. Poliza', editable=False, unique=True, null=True)
+    obra = models.ForeignKey(Obras, on_delete=models.CASCADE, verbose_name='Obra')
+    tiene_poliza = models.BooleanField(null=True, blank=True, verbose_name='Presenta póliza de sustitución?')
+    acta_fondo_reparo = models.CharField(max_length=30, blank=True, null=True, verbose_name='Póliza de sustitución Fondo de Reparo')
+    poliza_sustitucion = models.IntegerField(null=True, blank=True, verbose_name='N° Póliza Fondo de Reparo')
+    empresa_poliza = models.ForeignKey(EmpresaPoliza, on_delete=models.CASCADE, blank=True, null=True, verbose_name='Empresa aseguradora')
+    monto_asegurado = models.FloatField(null=True, blank=True, verbose_name='Monto asegurado')
     orden = models.PositiveIntegerField(verbose_name='Nro Orden', default=1)
-    obervacion = models.TextField(
-        null=True, blank=True, verbose_name='Observación')
-    user = models.ForeignKey(
-        User, on_delete=models.CASCADE, verbose_name='Creada por',)
+    obervacion = models.TextField(null=True, blank=True, verbose_name='Observación')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Creada por',)
 
     class Meta:
         verbose_name = 'Poliza'
@@ -579,19 +544,13 @@ class ActaTipo(models.Model):
 
 
 class ActasObras(models.Model):
-    id = models.BigAutoField(
-        auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
-    obra = models.ForeignKey(
-        Obras, on_delete=models.CASCADE, verbose_name='Obra')
-    tipo = models.ForeignKey(
-        ActaTipo, on_delete=models.CASCADE, verbose_name='Tipo de Acta')
-    fecha = models.DateField(
-        verbose_name='Fecha aplicación Acta', blank=True, null=True)
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    obra = models.ForeignKey(Obras, on_delete=models.CASCADE, verbose_name='Obra')
+    tipo = models.ForeignKey(ActaTipo, on_delete=models.CASCADE, verbose_name='Tipo de Acta')
+    fecha = models.DateField(verbose_name='Fecha aplicación Acta', blank=True, null=True)
     orden = models.PositiveIntegerField(verbose_name='Nro Orden', default=1)
-    dispo = models.CharField(
-        max_length=200, verbose_name='Disposición', blank=True, null=True)
-    codActa = models.CharField(
-        max_length=200, verbose_name='Cod. Acta', editable=False, unique=True, null=True)
+    dispo = models.CharField(max_length=200, verbose_name='Disposición', blank=True, null=True)
+    codActa = models.CharField(max_length=200, verbose_name='Cod. Acta', editable=False, unique=True, null=True)
 
     class Meta:
         verbose_name = 'Acta obra'
@@ -607,6 +566,25 @@ class ActasObras(models.Model):
         if ActasObras.objects.filter(codActa=self.codActa).exclude(pk=self.pk).exists():
             raise ValidationError(
                 f'Esta obra ya cuenta con acta {self.tipo.name} N° {self.orden}')
+        super().save(*args, **kwargs)
+
+class ActasInicio(models.Model):
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    obra = models.ForeignKey(Obras, on_delete=models.CASCADE, verbose_name='Obra')
+    fecha = models.DateField(verbose_name='Fecha de inicio', blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Cargado por', default=1)
+
+    class Meta:
+        verbose_name = 'Acta de inicio'
+        verbose_name_plural = 'Actas de inicio'
+        ordering = ['obra']
+    def clean(self):
+        if self.pk is None:
+            pass
+    def save(self, *args, **kwargs):
+        if ActasInicio.objects.filter(obra__codObra=self.obra.codObra).exclude(pk=self.pk).exists():
+            raise ValidationError(
+                f'Esta obra ya cuenta con acta de inicio')
         super().save(*args, **kwargs)
 
 
@@ -674,4 +652,40 @@ class DispoInspector(models.Model):
             raise ValidationError('Ya existe la %s' % self.dispo)
         super().save(*args, **kwargs)
 
+class AnticipoFinanciero(models.Model):
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    anticipo = models.BooleanField(verbose_name='Anticipo',null=True, blank=True)
+    dispo = models.CharField(max_length=30, verbose_name='Disposición', null=True, blank=True)
+    obra = models.ForeignKey(Obras, on_delete=models.CASCADE, verbose_name='Obra')
+    porcentaje = models.FloatField(verbose_name='Porcentaje',null=True, blank=True)
+    fecha = models.DateField(verbose_name='Fecha', null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Cargado por', default=1)
 
+    class Meta:
+        verbose_name = 'Anticipo financiero'
+        verbose_name_plural = 'Anticipos financieros'
+        ordering = ['-fecha']
+
+    def __str__(self):
+        return f'{self.obra.institucion} {self.obra.codObra}'
+    def save(self, *args, **kwargs):
+        if AnticipoFinanciero.objects.filter(obra__codObra=self.obra.codObra).exclude(pk=self.pk).exists():
+            raise ValidationError('Ya existe un anticipo financiero para esta obra')
+        super().save(*args, **kwargs)
+
+class Estructuras(models.Model):
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    obra = models.ForeignKey(Obras, on_delete=models.CASCADE, verbose_name='Obra')
+    link = models.URLField(verbose_name='Link', null=True, blank=True)
+    fecha = models.DateField(verbose_name='Fecha', null=True, blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Cargado por', default=1)
+    class Meta:
+        verbose_name = 'Estructura'
+        verbose_name_plural = 'Estructuras'
+        ordering = ['obra']
+    def __str__(self):
+        return f'{self.obra.institucion} {self.obra.codObra}'
+    def save(self, *args, **kwargs):
+        if Estructuras.objects.filter(obra__codObra=self.obra.codObra).exclude(pk=self.pk).exists():
+            raise ValidationError('Ya existe una estructura para esta obra')
+        super().save(*args, **kwargs)

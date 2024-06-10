@@ -32,8 +32,9 @@ SECRET_KEY = os.environ.get('SECRET_KEY', default='your secret key')
 DEBUG = 'RENDER' not in os.environ
 
 # ALLOWED_HOSTS = ['c46c-181-84-83-7.ngrok-free.app','localhost:80', '127.0.0.1:80']
-# CSRF_TRUSTED_ORIGINS = ['https://c46c-181-84-83-7.ngrok-free.app']
-ALLOWED_HOSTS = ['192.168.1.55','127.0.0.1']
+CSRF_TRUSTED_ORIGINS = ['https://ecce-181-110-168-237.ngrok-free.app']
+ALLOWED_HOSTS = ['192.168.1.55','127.0.0.1','ecce-181-110-168-237.ngrok-free.app','localhost:80']
+
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
@@ -77,7 +78,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    'django.middleware.locale.LocaleMiddleware',
+    # 'django.middleware.locale.LocaleMiddleware',
 ]
 
 ROOT_URLCONF = "cert_django.urls"

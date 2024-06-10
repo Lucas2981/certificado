@@ -1,7 +1,7 @@
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from django.contrib import admin
-from .models import (ActaMedicion, ActaTipo, ActasObras, Certificados, DispoInspector, Empresas, Estados, Location,Clases,Instituciones, Memorias, Polizas,Titulos,Inspectores,Obras,Rubros,
+from .models import (ActaMedicion, ActaTipo, ActasInicio, ActasObras, AnticipoFinanciero, Certificados, DispoInspector, Empresas, Location,Clases,Instituciones, Memorias, Polizas,Titulos,Inspectores,Obras,Rubros,
                     Subrubros,Presupuestos,PresupuestosSubrubros,Uvis,Unidades,EmpresaPoliza)
 
 # Register your models here.
@@ -22,12 +22,6 @@ class ClasesAdmin(admin.ModelAdmin):
     list_filter = ('name', 'subname')
     ordering = ['name']
 admin.site.register(Clases,ClasesAdmin)
-
-class EstadosAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    search_fields = ('name',)
-    ordering = ['name']
-admin.site.register(Estados,EstadosAdmin)
 
 class InstitucionesAdmin(ImportExportModelAdmin):
     list_display = ('name','clase','location')
@@ -151,3 +145,11 @@ admin.site.register(DispoInspector,DispoInspectorAdmin)
 class ActaMedicionAdmin(admin.ModelAdmin):
     list_display = ('obra','acta','periodo','user')
 admin.site.register(ActaMedicion,ActaMedicionAdmin)
+
+class AnticipoFinaAdmin(admin.ModelAdmin):
+    list_display = ('obra','dispo','obra')
+admin.site.register(AnticipoFinanciero,AnticipoFinaAdmin)
+
+class ActasInicioAdmin(admin.ModelAdmin):
+    list_display = ('obra','fecha','user')
+admin.site.register(ActasInicio,ActasInicioAdmin)

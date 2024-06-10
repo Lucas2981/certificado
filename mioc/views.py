@@ -9,8 +9,8 @@ from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 import numpy as np
-from . models import ActaMedicion, ActasObras, Certificados, DispoInspector, Memorias, Obras, EmpresaPoliza, Polizas
-from . forms import ActaMedicionForm, ActaMedicionFormEdit, ActasObrasFormEdit, CertificadoForm, CertificadoViewForm, DispoInspForm, DispoInspFormEdit, MemoriaForm, ObraFormAll, ObraFormActas, EmpresaPolizaForm, ActasObrasForm, PolizaForm
+from . models import ActaMedicion, ActasInicio, ActasObras, AnticipoFinanciero, Certificados, DispoInspector, Estructuras, Memorias, Obras, EmpresaPoliza, Polizas
+from . forms import ActaInicioForm, ActaMedicionForm, ActaMedicionFormEdit, ActasObrasFormEdit, AntidipoFinancieroForm, CertificadoForm, CertificadoViewForm, DispoInspForm, DispoInspFormEdit, EstructuraForm, MemoriaForm, ObraFormAll, ObraFormActas, EmpresaPolizaForm, ActasObrasForm, PolizaForm
 from datetime import datetime, date
 
 from plotly.offline import plot
@@ -52,7 +52,7 @@ def index(request):
     fig = go.Figure(
         data=[go.Bar(x=dfBar['fecha'],y=dfBar['uvi'])],
         layout=go.Layout(
-        title_text='Evolución de montos certificados por fecha',
+        title_text='Montos certificados por fecha',
         xaxis_title='Fecha',
         yaxis_title='Monto en miles de UVIs',
     ))
@@ -92,7 +92,52 @@ def index(request):
         boxplot = fig.to_html()
     except:
         boxplot = ''
-
+    # Obras sin poliza msj
+    obras_sin_poliza = Obras.objects.filter(polizas__isnull=True)
+    try:
+        if len(obras_sin_poliza) > 0:
+            pend_poliza = len(obras_sin_poliza)
+        else:
+            pend_poliza = ''
+    except:
+        pend_poliza = ''
+    # Obras sin inspector
+    obras_sin_inspector = Obras.objects.filter(dispoinspector__isnull=True)
+    try:
+        if len(obras_sin_inspector) > 0:
+            pend_inspector = len(obras_sin_inspector)
+        else:
+            pend_inspector = ''
+    except:
+        pend_inspector = ''
+    # Obras sin acta de inicio
+    obras_sin_acta = Obras.objects.filter(actasinicio__isnull=True, dispoinspector__isnull=False)
+    inspectores = DispoInspector.objects.all()
+    try:
+        if len(obras_sin_acta) > 0:
+            pend_acta_inicio = len(obras_sin_acta)
+        else:
+            pend_acta_inicio = ''
+    except:
+        pend_acta_inicio = ''
+    # Obras sin anticipo definido
+    obras_sin_anticipo = Obras.objects.filter(anticipofinanciero__isnull=True, dispoinspector__isnull=False)
+    try:
+        if len(obras_sin_anticipo) > 0:
+            pend_anticipo = len(obras_sin_anticipo)
+        else:
+            pend_anticipo = ''
+    except:
+        pend_anticipo = ''
+    # Obras para crear extructuras
+    sin_estructuras = Obras.objects.filter(estructuras__isnull=True, dispoinspector__isnull=False)
+    try:
+        if len(sin_estructuras) > 0:
+            pend_estructuras = len(sin_estructuras)
+        else:
+            pend_estructuras = ''
+    except:
+        pend_estructuras = ''
     context = {
         'certificados': certificados,
         'cant_cert': cant_cert,
@@ -107,7 +152,19 @@ def index(request):
         'bar': bar,
         'sun':sun,
         'Treemap': Treemap,
-        'boxplot': boxplot
+        'boxplot': boxplot,
+
+        'obras_sin_poliza':obras_sin_poliza,
+        'pend_poliza':pend_poliza,
+        'obras_sin_inspector':obras_sin_inspector,
+        'pend_inspector':pend_inspector,
+        'obras_sin_acta':obras_sin_acta,
+        'pend_acta_inicio':pend_acta_inicio,
+        'inspectores':inspectores,
+        'obras_sin_anticipo':obras_sin_anticipo,
+        'pend_anticipo':pend_anticipo,
+        'sin_estructuras':sin_estructuras,
+        'pend_estructuras':pend_estructuras,
     }
     return render(request, 'soc/index.html', context)
 
@@ -456,6 +513,69 @@ def borrar_acta(request, pk):
     messages.success(request, f'Acta {acta.orden} de{acta.tipo} eliminada!')
     return redirect('actas')
 
+def crear_actas_inicio(request):
+    if request.method == 'GET':
+        form = ActaInicioForm
+        return render(request, 'soc/actas/actas_inicio_crear.html', {
+            'form': form
+        })
+    else:
+        form = ActaInicioForm(request.POST)
+        try:
+            if form.is_valid():
+                dispo_inspector = form.save(commit=False)
+                dispo_inspector.user = request.user
+                dispo_inspector.save()
+                messages.success(request, f'Nueva acta creada!')
+                return redirect('inicio')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'soc/actas/actas_inicio_crear.html', {'form': form, 'error': error_message})
+    return render(request, 'soc/actas/actas_inicio_crear.html')
+
+def editar_actas_inicio(request, pk):
+    acta = get_object_or_404(ActasInicio, pk=pk)
+    if request.method == 'GET':
+        form = ActaInicioForm(instance=acta)
+        return render(request, 'soc/actas/actas_inicio_editar.html', {
+            'form': form
+        })
+    else:
+        form = ActaInicioForm(request.POST, instance=acta)
+        try:
+            if form.is_valid():
+                dispo_inspector = form.save(commit=False)
+                dispo_inspector.user = request.user
+                dispo_inspector.save()
+                messages.success(request, f'Acta {acta} editada!')
+                return redirect('inicio')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'soc/actas/actas_inicio_editar.html', {'form': form, 'error': error_message})
+
+def borrar_actas_inicio(request, pk):
+    acta = get_object_or_404(ActasInicio, pk=pk)
+    acta.delete()
+    messages.success(request, f'Acta {acta} eliminada!')
+    return redirect('inicio')
+
+def lista_actas_inicio(request):
+    actas = ActasInicio.objects.all().order_by('-fecha')
+    page = request.GET.get('page',1)
+    try:
+        paginator = Paginator(actas, 5)
+        actas = paginator.page(page)
+    except:
+        raise Http404
+    queryset = request.GET.get('buscar')
+    if queryset:
+        actas = ActasInicio.objects.filter(
+            Q(obra__institucion__name__icontains=queryset) |
+            Q(acta__icontains=queryset) |
+            Q(user__username__icontains=queryset),
+        ).distinct().order_by('id',)
+    return render(request, 'soc/actas/actas_inicio_lista.html', {'entity': actas, 'paginator': paginator })
+
 # Div Armado Expte. Pago
 @permission_required('mioc.add_memorias')
 def crear_memoria(request):
@@ -603,6 +723,64 @@ def detalle_obra(request):
         'paginator':paginator
     }
     return render(request, 'soc/obras/obra_detalle.html', context)
+
+def crear_anticipo(request):
+    if request.method == 'GET':
+        form = AntidipoFinancieroForm
+        return render(request, 'soc/dispo/dispo_anticipo_crear.html', {
+            'form': form
+        })
+    else:
+        form = AntidipoFinancieroForm(request.POST)
+        try:
+            if form.is_valid():
+                anticipo = form.save(commit=False)
+                anticipo.user = request.user
+                anticipo.save()
+                messages.success(request, f'Nuevo anticipo creado!')
+                return redirect('anticipo')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'soc/dispo/dispo_anticipo_crear.html', {'form': form, 'error': error_message})
+    return render(request, 'soc/dispo/anticipo.html')
+
+def editar_anticipo(request, pk):
+    anticipo = get_object_or_404(AnticipoFinanciero, pk=pk)
+    if request.method == 'GET':
+        form = AntidipoFinancieroForm(instance=anticipo)
+        return render(request, 'soc/dispo/dispo_anticipo_editar.html', {
+            'form': form
+        })
+    else:
+        form = AntidipoFinancieroForm(request.POST, instance=anticipo)
+        form.save()
+        messages.success(request, f'Registro editado!')
+        return redirect('anticipo')
+
+def borrar_anticipo(request, pk):
+    anticipo = get_object_or_404(AnticipoFinanciero, pk=pk)
+    anticipo.delete()
+    messages.success(request, f'Registro eliminado!')
+    return redirect('anticipo')
+
+def lista_anticipo(request):
+    anticipos = AnticipoFinanciero.objects.all()
+    inspectores = DispoInspector.objects.all()
+    page = request.GET.get('page',1)
+    try:
+        paginator = Paginator(anticipos,5)
+        anticipos = paginator.page(page)
+    except:
+        raise Http404
+    queryset = request.GET.get('buscar')
+    if queryset:
+        anticipos = AnticipoFinanciero.objects.filter(
+            Q(expediente__icontains=queryset) |
+            Q(obra__institucion__name__icontains=queryset) |
+            Q(obra__inspector__fullname__icontains=queryset) |
+            Q(obra__empresa__name__icontains=queryset),
+        ).distinct().order_by('obra__institucion',)
+    return render(request, 'soc/dispo/dispo_anticipo_lista.html', {'entity': anticipos, 'paginator':paginator, 'inspectores':inspectores})
 
 # Dpto. Despacho DPO 
 @permission_required('mioc.add_dispoinspector')
@@ -773,3 +951,69 @@ def lista_actas_obras(request):
             Q(user__username__icontains=queryset),
         ).distinct().order_by('id',)
     return render(request, 'soc/medicion/actas_obras_lista.html', {'entity': actas, 'paginator': paginator })
+
+# Dpto. Certificaciones
+
+def crear_estructura(request):
+    if request.method == 'GET':
+        form = EstructuraForm
+        return render(request, 'soc/obras/obra_estructura_crear.html', {
+            'form': form
+        })
+    else:
+        form = EstructuraForm(request.POST)
+        try:
+            if form.is_valid():
+                dispo_inspector = form.save(commit=False)
+                dispo_inspector.user = request.user
+                dispo_inspector.save()
+                messages.success(request, f'Nueva estructura informada!')
+                return redirect('estructuras')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'soc/obras/obra_estructura_crear.html', {'form': form, 'error': error_message})
+    return render(request, 'soc/obras/obra_estructura_crear.html')
+
+def editar_estructura(request, pk):
+    estructura = get_object_or_404(Estructuras, pk=pk)
+    if request.method == 'GET':
+        form = EstructuraForm(instance=estructura)
+        return render(request, 'soc/obras/obra_estructura_editar.html', {
+            'form': form
+        })
+    else:
+        form = EstructuraForm(request.POST, instance=estructura)
+        try:
+            if form.is_valid():
+                dispo_inspector = form.save(commit=False)
+                dispo_inspector.user = request.user
+                dispo_inspector.save()
+                messages.success(request, f'Estructura {estructura} editada!')
+                return redirect('estructuras')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'soc/obras/obra_estructura_editar.html', {'form': form, 'error': error_message})
+
+def borrar_estructura(request, pk):
+    estructura = get_object_or_404(Estructuras, pk=pk)
+    estructura.delete()
+    messages.success(request, f'Estructura {estructura} eliminada!')
+    return redirect('estructuras')
+
+def lista_estructura(request):
+    estructuras = Estructuras.objects.all().order_by('-fecha')
+    page = request.GET.get('page',1)
+    try:
+        paginator = Paginator(estructuras, 5)
+        estructuras = paginator.page(page)
+    except:
+        raise Http404
+    queryset = request.GET.get('buscar')
+    if queryset:
+        estructuras = Estructuras.objects.filter(
+            Q(obra__institucion__name__icontains=queryset) |
+            Q(link__icontains=queryset) |
+            Q(fecha__icontains=queryset) |
+            Q(user__username__icontains=queryset),
+        ).distinct().order_by('id',)
+    return render(request, 'soc/obras/obra_estructura_lista.html', {'entity': estructuras, 'paginator': paginator })

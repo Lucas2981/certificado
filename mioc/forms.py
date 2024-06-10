@@ -1,5 +1,5 @@
 from django.forms import DateInput, ModelForm
-from .models import ActaMedicion, ActasObras, DispoInspector, Memorias, Obras, EmpresaPoliza, Certificados, Polizas, Instituciones
+from .models import ActaMedicion, ActasInicio, ActasObras, AnticipoFinanciero, DispoInspector, Estructuras, Memorias, Obras, EmpresaPoliza, Certificados, Polizas, Instituciones
 from django import forms
 # llamar librerias de admin para autocompletar
 from django.contrib.admin.widgets import AutocompleteSelect
@@ -105,3 +105,22 @@ class ActaMedicionFormEdit(ModelForm):
     class Meta:
         model = ActaMedicion
         fields = ['obra', 'acta', 'periodo']
+
+class ActaInicioForm(ModelForm):
+    class Meta:
+        model = ActasInicio
+        fields = ['obra','fecha']
+        widgets = {'fecha': forms.DateInput(
+            attrs={'class': 'form-control', 'type': 'date'})}
+
+class AntidipoFinancieroForm(ModelForm):
+    class Meta:
+        model = AnticipoFinanciero
+        fields = ['anticipo','dispo','obra','porcentaje','fecha']
+        widgets = {'fecha': forms.DateInput(
+            attrs={'class': 'form-control', 'type': 'date'})}
+
+class EstructuraForm(ModelForm):
+    class Meta:
+        model = Estructuras
+        fields = ('obra','link','fecha')

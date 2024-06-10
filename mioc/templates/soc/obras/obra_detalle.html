@@ -1,11 +1,11 @@
 {% extends 'layouts/base.html' %}
 {% block content %}
-{% block title %}Monitor de Obras{% endblock %}
+{% block title %}Detalle de Obras{% endblock %}
 {% load crispy_forms_tags %}
 {% load humanize %}
 
 <main class="container py-5">
-    <h1 class="display-3 text-center fw-medium">Monitor de Obras</h1>
+    <h1 class="display-5 text-center fw-medium">Detalle de Obras</h1>
     <br>
     <div class="accordion accordion-flush" id="accordionFlushExample">
         <!-- inicio item -->
@@ -52,7 +52,7 @@
                                     </thead>
                                     <tbody>
                                         {% for z in certificados %}
-                                        {% if z.obra.codObra == x.obra.codObra %}
+                                        {% if z.acta.obra.codObra == x.codObra %}
                                         <tr>
                                             <td>{{ z.acta.acta }}</td> </td>
                                             <td>{{ z.acta.periodo|date:"F y" }}</td>

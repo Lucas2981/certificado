@@ -1,0 +1,46 @@
+{% load humanize %}
+<!-- inicio indicadores -->
+<div class="card-group border-0">
+
+    <div class="card border-0 text-center">
+        <div class="display-5 fw-bold pt-2" style="color: #e64f21;"><i class="bi bi-cone-striped"></i></div>
+        <div class="card-body">
+            <p class="h4 fw-bold">{{ activas }}</p>
+            <p class="h6">Obras activas</p>
+            <p class="text-muted">{{ porc_activas }}%</p>
+        </div>
+    </div>
+    <div class="card border-0 text-center">
+        <div class="display-5 fw-bold pt-2" style="color: #c21010;"><i class="bi bi-sign-stop"></i></div>
+        <div class="card-body">
+            <p class="h4 fw-bold">{{ paralizadas }}</p>
+            <p class="h6">Obras paralizadas</p>
+            <p class="text-muted">{{ porc_paralizadas }}%</p>
+        </div>
+    </div>
+    <div class="card border-0 text-center">
+        <div class="display-5 fw-bold pt-2" style="color: #20833e;"><i class="bi bi-building-check"></i></div>
+        <div class="card-body">
+            <p class="h4 fw-bold">{{ finalizadas }}</p>
+            <p class="h6">Obras Finalizadas</p>
+            <p class="text-muted">{{ porc_finalizadas }}%</p>
+        </div>
+    </div>
+    <div class="card border-0 text-center">
+        <div class="display-5 fw-bold pt-2" style="color: #2b0ecc;"><i class="bi bi-journal-check"></i></div>
+        <div class="card-body">
+            <p class="h4 fw-bold">{{ cant_cert }}</p>
+            <p class="h6">Certificado emitidos</p>
+            <p class="text-muted">{{ ano }}</p>
+        </div>
+    </div>
+    <div class="card border-0 text-center">
+        <div class="display-5 fw-bold pt-2" style="color: #0ecc1e;"><i class="bi bi-cash-coin"></i></div>
+        <div class="card-body">
+            <p class="h4 fw-bold">{% if monto_cert < 1000000 %}{{ monto_cert|intcomma }} {% else %}{ monto_cert|intcomma
+                    %}M {% endif %}</p>
+                    <p class="h6">Certificados Pagados</p>
+                    <p class="text-muted">en miles de UVIs - {{ ano }}</p>
+        </div>
+    </div>
+</div>

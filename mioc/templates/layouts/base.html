@@ -123,7 +123,7 @@
                             </ul>
                         </li>
                         <hr style="color: #8de5e5; height: 2px;">
-                        <!-- Dpto Despachos -->
+                        <!-- Dpto Despacho SOC -->
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                                 aria-expanded="false">
@@ -133,10 +133,15 @@
                                 style="background-color: #8de5e5;">
                                 <!-- Obras -->
                                 <li><a class="dropdown-item" href="{% url 'obras' %}"><i class="bi bi-list-check"></i>
-                                        Obras</a></li>
-                                <li><a class="dropdown-item" href="{% url 'nueva_obra' %}"><i class="bi bi-file-earmark-plus"></i> Crear
-                                        Obra</a></li>
-                            </ul>
+                                    Obras</a></li>
+                            <li><a class="dropdown-item" href="{% url 'nueva_obra' %}"><i class="bi bi-file-earmark-plus"></i> Crear
+                                    Obra</a></li>
+                                <!-- Anticipos -->
+                                <li><a class="dropdown-item" href="{% url 'anticipo' %}"><i class="bi bi-list-check"></i>
+                                    Anticipos</a></li>
+                            <li><a class="dropdown-item" href="{% url 'nuevo_anticipo' %}"><i class="bi bi-file-earmark-plus"></i> Definir
+                                    Anticipo</a></li>
+                    </ul>
                         </li>
                         <hr style="color: #8de5e5; height: 2px;">
                         <!-- Dpto Despacho DPO -->
@@ -162,6 +167,12 @@
                                 Inspección de Obras
                             </a>
                             <ul class="dropdown-menu" style="background-color: #8de5e5;">
+                                <!-- Actas de inicio -->
+                                <li><a class="dropdown-item" href="{% url 'inicio' %}"><i class="bi bi-list-check"></i>
+                                    Actas de Inicio</a></li>
+                            <li><a class="dropdown-item" href="{% url 'nuevo_inicio' %}"><i
+                                        class="bi bi-file-earmark-plus"></i> Nueva
+                                    Acta de inicio</a></li>
                                 <!-- Actas de medición-->
                                 <li><a class="dropdown-item" href="{% url 'medicion' %}"><i class="bi bi-list-check"></i>
                                         Actas de Medición</a></li>

@@ -1,9 +1,9 @@
 {% extends 'layouts/base.html' %}
 {% block content %}
-{% block title %}Aseguradoras{% endblock %}
+{% block title %}Anticipos Financieros{% endblock %}
 {% load static %}
 <main class="container py-5">
-    <h1 class="display-5 text-center fw-medium">Aseguradoras</h1>
+    <h3 class="display-5 text-center fw-medium">Anticipos Financieros</h3>
     <br>
     <div class="container">
         <div class="row flex-fill">
@@ -24,9 +24,9 @@
                     </div>
                 </form>
             </div>
-            {% if perms.mioc.add_empresapoliza %}
+            {% if perms.mioc.add_dispoinspector %}
             <div class="col-1">
-                <a href="{% url 'nueva' %}" type="" class="btn btn-outline-secondary">
+                <a href="{% url 'nuevo_anticipo' %}" type="" class="btn btn-outline-secondary">
                     <i class="bi bi-plus-lg"></i>
                 </a>
             </div>
@@ -38,29 +38,36 @@
     <div class="table-responsive">
         <table class="table table-hover">
             <thead class="table-success">
-                <th>Empresa</th>
-                <th>Domicilio</th>
-                <th>Teléfono</th>
+                <th>Dispocición</th>
+                <th>Cod Obra</th>
+                <th>Obra</th>
+                <th>Porcentaje</th>
+                <th>Fecha</th>
                 <th>Registró</th>
                 <th>Acciones</th>
             </thead>
             <tbody>
                 {% for x in entity %}
                 <tr></td>
-                    <td class="fw-semibold">{{x.empresa}}</td>
-                    <td>{{x.location}}</td>
-                    <td>{{x.telefono}}</td>
-                    <td>{{x.creaEmpresa}}</td>
+                    <td class="fw-semibold">{{x.dispo}}</td>
+                    <td>{{x.obra.codObra}}</td>
+                    <td>{{x.obra.institucion.name}}</td>
+                    <td>{{x.porcentaje}} %</td>
+                    <td>{{x.fecha}}</td>
+                    <td>{{x.user}}</td>
                     <td>
                         <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">
-                            <a type="button" class="btn btn-outline-info"><i class="bi bi-funnel"></i></a>
-                            <a type="button" class="btn btn-outline-info" href="#"><i class="bi bi-search"></i></a>
-                            {% if perms.mioc.change_empresapoliza %}
-                            <a type="button" class="btn btn-outline-success"
-                                href="{% url 'editar' x.pk %}"><i class="bi bi-pencil-square"></i></a>
+                            {% if perms.mioc.view_obras %}
+                            <a type="button" class="btn btn-outline-info" href="{% url 'dispo_inspe_obra' x.obra_id %}"><i class="bi bi-funnel"></i></a>
                             {% endif %}
-                            {% if perms.mioc.delete_empresapoliza %}
-                            <a type="button" class="btn btn-outline-danger" href="{% url 'eliminar' x.pk %}"><i class="bi bi-trash3"></i></a>
+                            {% if perms.mioc.view_dispoinspector %}
+                            <a type="button" class="btn btn-outline-info" href="#"><i class="bi bi-search"></i></a>
+                            {% endif %}
+                            {% if perms.mioc.change_dispoinspector %}
+                            <a type="button" class="btn btn-outline-success" href="{% url 'editar_dispo_inspe' x.id %}"><i class="bi bi-pencil-square"></i></a>
+                            {% endif %}
+                            {% if perms.mioc.delete_dispoinspector %}
+                            <a type="button" class="btn btn-outline-danger" href="{% url 'eliminar_anticipo' x.id %}"><i class="bi bi-trash3"></i></a>
                             {% endif %}
                         </div>
                     </td>

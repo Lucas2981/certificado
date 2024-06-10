@@ -4,96 +4,67 @@
 {% load static %}
 {% load humanize %}
 <main class="container py-5">
-    <h1 class="display-3 text-center fw-medium pb-2">Dpto. Certificaciones</h1>
-    <!-- inicio indicadores -->
-    <div class="card-group border-0">
-        
-        <div class="card border-0 text-center" >
-            <div class="display-3 fw-bold pt-4" style="color: #e64f21;"><i class="bi bi-cone-striped"></i></div>
-            <div class="card-body">
-                <p class="h2 fw-bold">{{ activas }}</p>
-                <p class="h5">Obras activas</p>
-                <p class="text-muted">{{ porc_activas }}%</p>
-            </div>
-        </div>
-        <div class="card border-0 text-center">
-            <div class="display-3 fw-bold pt-4" style="color: #c21010;"><i class="bi bi-sign-stop"></i></div>
-            <div class="card-body">
-                <p class="h2 fw-bold">{{ paralizadas }}</p>
-                <p class="h5">Obras paralizadas</p>
-                <p class="text-muted">{{ porc_paralizadas }}%</p>
-        </div>
-        </div>
-        <div class="card border-0 text-center">
-            <div class="display-3 fw-bold pt-4" style="color: #20833e;"><i class="bi bi-building-check"></i></div>
-            <div class="card-body">
-                <p class="h2 fw-bold">{{ finalizadas }}</p>
-                <p class="h5">Obras Finalizadas</p>
-                <p class="text-muted">{{ porc_finalizadas }}%</p>
-        </div>
-        </div>
-        <div class="card border-0 text-center">
-            <div class="display-3 fw-bold pt-4" style="color: #2b0ecc;"><i class="bi bi-journal-check"></i></div>
-            <div class="card-body">
-                <p class="h2 fw-bold">{{ cant_cert }}</p>
-                <p class="h5">Certificado emitidos</p>
-                <p class="text-muted">{{ ano }}</p>
-        </div>
-        </div>
-        <div class="card border-0 text-center">
-            <div class="display-3 fw-bold pt-4" style="color: #0ecc1e;"><i class="bi bi-cash-coin"></i></div>
-            <div class="card-body">
-                <p class="h2 fw-bold">{% if monto_cert < 1000000 %}{{ monto_cert|intcomma }} {% else %}{ monto_cert|intcomma %}M {% endif %}</p>
-                <p class="h5">Certificados Pagados</p>
-                <p class="text-muted">en miles de UVIs - {{ ano }}</p>
-            </div>
-        </div>
-    </div>
-    <!-- inicio acordeon -->
-    {% include 'layouts/dashboard.html' %}
+    <h1 class="display-5 text-center fw-medium pb-3">Dpto. Certificaciones</h1>
+    <!-- inicio de indicadores -->
+    <!-- {% include 'layouts/indicadores.html' } -->
+    <!-- {% include 'layouts/dashboard.html' } -->
+    <!-- fin de indicadores -->
+
     <!-- incio card -->
-    <div class="row pt-4" >
-        <div class="col pb-5">
-            <div class="card shadow-sm bg-body rounded overflow-hidden" style="width: 18rem;">
+    <div class="row row-cols-1 row-cols-sm-2 g-sm-3 row-cols-md-3 g-md-3 row-cols-xl-4 g-xl-4 row-cols-xxl-5 g-xxl-4">
+        <div class="col">
+            <div class="card h-100">
                 <div class="card-body d-flex justify-content-center align-items-center"
-                    style="background-color: #ed3d8f;">
-                    <i class="bi bi-display" style="font-size: 5rem; color: #ffffff;"></i>
+                    style="background-color: #3462e2;">
+                    <i class="bi bi-speedometer2" style="font-size: 4rem; color: #ffffff;"></i>
                 </div>
                 <div class="card-body" style="background-color: #ffffff;">
-                    <h4 class="card-title text-center">Monitor de Obras</h4>
+                    <h4 class="card-title text-center">Dasboard</h4>
+                    <a href="#" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body d-flex justify-content-center align-items-center"
+                    style="background-color: #ed3d8f;">
+                    <i class="bi bi-display" style="font-size: 4rem; color: #ffffff;"></i>
+                </div>
+                <div class="card-body" style="background-color: #ffffff;">
+                    <h4 class="card-title text-center">Detalle de Obras</h4>
                     <a href="{% url 'obra_detalle' %}" class="stretched-link"></a>
                 </div>
             </div>
         </div>
-        <div class="col pb-5">
-            <div class="card shadow-sm bg-body rounded overflow-hidden" style="width: 18rem;">
+        <div class="col">
+            <div class="card h-100">
                 <div class="card-body d-flex justify-content-center align-items-center"
                     style="background-color: #cded3d;">
-                    <i class="bi bi-house-check" style="font-size: 5rem; color: #ffffff;"></i>
+                    <i class="bi bi-house-check" style="font-size: 4rem; color: #ffffff;"></i>
                 </div>
                 <div class="card-body" style="background-color: #ffffff;">
-                    <h4 class="card-title text-center">Listado de Obras</h4>
+                    <h4 class="card-title text-center">Obras</h4>
                     <a href="{% url 'obras' %}" class="stretched-link"></a>
                 </div>
             </div>
         </div>
-        <div class="col pb-5">
-            <div class="card shadow-sm bg-body rounded overflow-hidden" style="width: 18rem;">
+        <div class="col">
+            <div class="card h-100">
                 <div class="card-body d-flex justify-content-center align-items-center"
                     style="background-color: #0c90b1;">
-                    <i class="bi bi-file-earmark-bar-graph" style="font-size: 5rem; color: #ffffff;"></i>
+                    <i class="bi bi-file-earmark-bar-graph" style="font-size: 4rem; color: #ffffff;"></i>
                 </div>
                 <div class="card-body" style="background-color: #ffffff;">
-                    <h4 class="card-title text-center">Certificados</h4>
+                    <h4 class="card-title text-center">Certificados de Avance</h4>
                     <a href="{% url 'certificados' %}" class="stretched-link"></a>
                 </div>
             </div>
         </div>
-        <div class="col pb-5">
-            <div class="card shadow-sm bg-body rounded overflow-hidden" style="width: 18rem;">
+        <div class="col">
+            <div class="card h-100">
                 <div class="card-body d-flex justify-content-center align-items-center"
                     style="background-color: #ed663d;">
-                    <i class="bi bi-file-earmark-zip" style="font-size: 5rem; color: #ffffff;"></i>
+                    <i class="bi bi-file-earmark-zip" style="font-size: 4rem; color: #ffffff;"></i>
                 </div>
                 <div class="card-body" style="background-color: #ffffff;">
                     <h4 class="card-title text-center">Fondos Sustitución</h4>
@@ -101,8 +72,85 @@
                 </div>
             </div>
         </div>
-        <section class="container-lg">
-            {{ perms.mioc }}
-        </section>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body d-flex justify-content-center align-items-center"
+                    style="background-color: #2ecfd4;">
+                    <i class="bi bi-person-check" style="font-size: 4rem; color: #ffffff;"></i>
+                </div>
+                <div class="card-body" style="background-color: #ffffff;">
+                    <h4 class="card-title text-center">Inspectores Asignados</h4>
+                    <a href="{% url 'dispo_inspe' %}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body d-flex justify-content-center align-items-center"
+                    style="background-color: #8322bb;">
+                    <i class="bi bi-file-play" style="font-size: 4rem; color: #ffffff;"></i>
+                </div>
+                <div class="card-body" style="background-color: #ffffff;">
+                    <h4 class="card-title text-center">Actas de Inicio</h4>
+                    <a href="{% url 'inicio' %}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body d-flex justify-content-center align-items-center"
+                    style="background-color: #22bb43;">
+                    <i class="bi bi-percent" style="font-size: 4rem; color: #ffffff;"></i>
+                </div>
+                <div class="card-body" style="background-color: #ffffff;">
+                    <h4 class="card-title text-center">Anticipo de Financiero</h4>
+                    <a href="{% url 'anticipo' %}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body d-flex justify-content-center align-items-center"
+                    style="background-color: #be3658;">
+                    <i class="bi bi-file-earmark-diff" style="font-size: 4rem; color: #ffffff;"></i>
+                </div>
+                <div class="card-body" style="background-color: #ffffff;">
+                    <h4 class="card-title text-center">Certificados Anticipo Financiero</h4>
+                    <a href="{% url 'anticipo' %}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body d-flex justify-content-center align-items-center"
+                    style="background-color: #d1cf45;">
+                    <i class="bi bi-bar-chart-steps" style="font-size: 4rem; color: #ffffff;"></i>
+                </div>
+                <div class="card-body" style="background-color: #ffffff;">
+                    <h4 class="card-title text-center">Obras de {{user.username|upper}}</h4>
+                    <a href="{% url 'estructuras' %}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+    
+    </div>
+    <!-- fin de card -->
+    
+    <!-- inicio de tareas pendientes -->
+    {% if perms.mioc or perms.soc %}
+    <br><hr>
+    <p class="h3 py-3"><i class="bi bi-list-task" style="color: #3c52d1;"></i> Tareas pendientes del Área</p>
+    {% endif %}
+    {% include 'soc/pendientes/list_task_poliza.html' %}
+    {% include 'soc/pendientes/list_task_dispo_inpector.html' %}
+    {% include 'soc/pendientes/list_task_inicio.html' %}
+    {% include 'soc/pendientes/list_task_anticipo.html' %}
+    {% include 'soc/pendientes/list_task_estructura.html' %}
+    <!-- fin de tareas pendientes -->
+    
+    <section class="container-lg">
+        <br>
+        {{ perms.mioc }}
+    </section>
 </main>
 {% endblock %}

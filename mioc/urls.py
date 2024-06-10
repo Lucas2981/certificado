@@ -44,9 +44,23 @@ urlpatterns = [
     path('obras/dispo/<int:pk>/elimiar/',login_required(views.borrar_dispo_inspector), name='eliminar_dispo_inspe'),
     path('obras/dispo/',login_required(views.lista_dispo_inspector), name='dispo_inspe'),
     path('obras/dispo/<int:obra_id>/',login_required(views.lista_dispo_inspector_obra), name='dispo_inspe_obra'),
+    # dispociciones
+    path('obras/dispo/anticipo/nueva',login_required(views.crear_anticipo), name='nuevo_anticipo'),
+    path('obras/dispo/anticipo/<int:pk>/editar/',login_required(views.editar_anticipo), name='editar_anticipo'),
+    path('obras/dispo/anticipo/<int:pk>/elimiar/',login_required(views.borrar_anticipo), name='eliminar_anticipo'),
+    path('obras/dispo/anticipo/',login_required(views.lista_anticipo), name='anticipo'),
     # Mediciones
     path('obras/medicion/nueva',login_required(views.crear_actas_obras), name='nueva_medicion'),
     path('obras/medicion/<int:pk>/editar/',login_required(views.editar_actas_obras), name='editar_medicion'),
     path('obras/medicion/<int:pk>/elimiar/',login_required(views.borrar_actas_obras), name='eliminar_medicion'),
     path('obras/medicion/',login_required(views.lista_actas_obras), name='medicion'),
+    path('obras/inicio/nuevo',login_required(views.crear_actas_inicio), name='nuevo_inicio'),
+    path('obras/inicio/<int:pk>/editar/',login_required(views.editar_actas_inicio), name='editar_inicio'),
+    path('obras/inicio/<int:pk>/elimiar/',login_required(views.borrar_actas_inicio), name='eliminar_inicio'),
+    path('obras/inicio/',login_required(views.lista_actas_inicio), name='inicio'),
+    # Estructuras
+    path('obras/estructura/nueva',login_required(views.crear_estructura), name='nueva_estructura'),
+    path('obras/estructura/<int:pk>/editar/',login_required(views.editar_estructura), name='editar_estructura'),
+    path('obras/estructura/<int:pk>/elimiar/',login_required(views.borrar_estructura), name='eliminar_estructura'),
+    path('obras/estructura/',login_required(views.lista_estructura), name='estructuras'),
 ]
