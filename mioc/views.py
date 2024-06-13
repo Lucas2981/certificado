@@ -18,80 +18,6 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 def index(request):
-    ano = date.today().year
-    actas = ActasObras.objects.filter(fecha__year=ano)
-    try:
-        paralizadas = actas.filter(tipo__name='Paralización').count() - actas.filter(tipo__name='Reinicio').count()
-    except:
-        paralizadas = 0
-    try:
-        finalizadas = actas.filter(tipo__name='Recepción Provisoria').count()
-    except:
-        finalizadas = 0
-    activas = actas.filter(tipo__name='Inicio').count() - finalizadas - paralizadas
-    totales = activas + paralizadas + finalizadas
-    try:
-        porc_paralizadas = round(paralizadas / totales * 100, 2)
-        porc_finalizadas = round(finalizadas / totales * 100, 2)
-        porc_activas = round(activas / totales * 100, 2)
-    except:
-        porc_paralizadas = 0
-        porc_finalizadas = 0
-        porc_activas = 0
-    certificados = Certificados.objects.filter(acta__periodo__year=ano)
-    cant_cert = len(certificados)
-    try:
-        monto_cert = certificados.aggregate(Sum('uvi'))['uvi__sum']/1000
-    except:
-        monto_cert = 0
-    
-    data = Certificados.objects.filter(acta__periodo__year=ano)
-    # Grafico de linea ideal para mostrar la evolución de montos certificados por fecha
-    dataBar = data.values_list('acta__obra__institucion__name','acta__periodo').annotate(cantidad=Sum('uvi'))
-    dfBar = pd.DataFrame(dataBar, columns=['obra','fecha','uvi'])
-    fig = go.Figure(
-        data=[go.Bar(x=dfBar['fecha'],y=dfBar['uvi'])],
-        layout=go.Layout(
-        title_text='Montos certificados por fecha',
-        xaxis_title='Fecha',
-        yaxis_title='Monto en miles de UVIs',
-    ))
-    bar = fig.to_html()
-    # Grafico de arbol ideal para mostrar la evolución de montos certificados por clase/empresa/obra/certificado
-    dataSun = data.values_list('acta__obra__institucion__clase__name','acta__obra__institucion__clase__subname','acta__obra__empresa__name','acta__obra__institucion__name','acta__obra__monto_uvi').annotate(cantidad=Sum('uvi'))
-    dfSun = pd.DataFrame(dataSun, columns=['clase','subclase','empresa','obra','monto','uvi'])
-    try:
-        media =  dfSun['uvi']/dfSun['monto']
-        fig = px.sunburst(dfSun, path=['clase','subclase','empresa','obra','uvi'], values='monto',
-                        color='monto', hover_data=['subclase'],
-                        color_continuous_scale='plasma',
-                        color_continuous_midpoint=np.average(media, weights=dfSun['monto']),
-                        title='Certificados/presupuesto')
-        sun = fig.to_html()
-    except:
-        sun = ''
-    # Grafico de arbol ideal para mostrar la evolución de montos certificados por clase/obra/certificado
-    dfTreemap = dfSun
-    try:
-        dfTreemap['avance'] = round(dfTreemap['uvi']/dfTreemap['monto']*100,2)
-        fig = px.treemap(dfTreemap, path=[px.Constant("Todas las Empresas"), 'empresa','obra','monto','avance'], values='avance',
-                        color='avance', hover_data=['empresa'],
-                        color_continuous_scale='blues',
-                        color_continuous_midpoint=np.average(dfTreemap['avance'], weights=dfTreemap['monto']),
-                        title='Avance de Obras agrupado por Empresa')
-        fig.update_layout(margin = dict(t=50, l=25, r=25, b=25))
-        Treemap = fig.to_html()
-    except:
-        Treemap = ''
-    # Grafico de caja y bigotes para mostrar la evolución de coheficiente de avance por obra
-    dataBoxplot = data.values_list('acta__obra__empresa__name','acta__obra__institucion__name','avance_acum_proy','avance_acum_med').annotate(cantidad=Sum('uvi'))
-    dfBoxplot = pd.DataFrame(dataBoxplot, columns=['empresa','obra','av_proy','av_real','count'])
-    try:
-        dfBoxplot['coheficiente'] = round(dfBoxplot['av_real'] / dfBoxplot['av_proy'],2)
-        fig = px.box(dfBoxplot, x="empresa", y="coheficiente", points="all",title='Coheficientes de Avance por Empresa')
-        boxplot = fig.to_html()
-    except:
-        boxplot = ''
     # Obras sin poliza msj
     obras_sin_poliza = Obras.objects.filter(polizas__isnull=True)
     try:
@@ -139,21 +65,6 @@ def index(request):
     except:
         pend_estructuras = ''
     context = {
-        'certificados': certificados,
-        'cant_cert': cant_cert,
-        'monto_cert': monto_cert,
-        'activas': activas,
-        'paralizadas': paralizadas,
-        'finalizadas': finalizadas,
-        'ano': ano,
-        'porc_paralizadas': porc_paralizadas,
-        'porc_finalizadas': porc_finalizadas,
-        'porc_activas': porc_activas,
-        'bar': bar,
-        'sun':sun,
-        'Treemap': Treemap,
-        'boxplot': boxplot,
-
         'obras_sin_poliza':obras_sin_poliza,
         'pend_poliza':pend_poliza,
         'obras_sin_inspector':obras_sin_inspector,
@@ -168,6 +79,113 @@ def index(request):
     }
     return render(request, 'soc/index.html', context)
 
+def dashboard(request):
+    ano = date.today().year
+    actas = ActasObras.objects.filter(fecha__year=ano)
+    try:
+        paralizadas = actas.filter(tipo__name='Paralización').count() - actas.filter(tipo__name='Reinicio').count()
+    except:
+        paralizadas = 0
+    try:
+        finalizadas = actas.filter(tipo__name='Recepción Provisoria').count()
+    except:
+        finalizadas = 0
+    activas = actas.filter(tipo__name='Inicio').count() - finalizadas - paralizadas
+    totales = activas + paralizadas + finalizadas
+    try:
+        porc_paralizadas = round(paralizadas / totales * 100, 2)
+        porc_finalizadas = round(finalizadas / totales * 100, 2)
+        porc_activas = round(activas / totales * 100, 2)
+    except:
+        porc_paralizadas = 0
+        porc_finalizadas = 0
+        porc_activas = 0
+    certificados = Certificados.objects.filter(acta__periodo__year=ano)
+    cant_cert = len(certificados)
+    try:
+        monto_cert = certificados.aggregate(Sum('uvi'))['uvi__sum']
+    except:
+        monto_cert = 0
+    
+    data = Certificados.objects.filter(acta__periodo__year=ano)
+    # Grafico de linea ideal para mostrar la evolución de montos certificados por fecha
+    dataBar = data.values_list('acta__obra__institucion__name','acta__periodo').annotate(cantidad=Sum('uvi'))
+    dfBar = pd.DataFrame(dataBar, columns=['obra','fecha','uvi'])
+    config={'toImageButtonOptions': {'filename': 'Montos certificados por fecha',
+                                    'responsive': True}
+            }
+    fig = go.Figure(
+        data=[go.Bar(x=dfBar['fecha'],y=dfBar['uvi'])],
+        layout=go.Layout(
+        title_text='Montos certificados por fecha',
+        xaxis_title='Fecha',
+        yaxis_title='Monto en miles de UVIs',
+    ))
+    fig.update_layout(
+    autosize=True,
+    width=500,
+    height=500,)
+    bar = fig.to_html(config=config)
+    # Grafico de arbol ideal para mostrar la evolución de montos certificados por clase/empresa/obra/certificado
+    dataSun = data.values_list('acta__obra__institucion__clase__name','acta__obra__institucion__clase__subname','acta__obra__empresa__name','acta__obra__institucion__name','acta__obra__monto_uvi').annotate(cantidad=Sum('uvi'))
+    dfSun = pd.DataFrame(dataSun, columns=['clase','subclase','empresa','obra','monto','uvi'],)
+    try:
+        media =  dfSun['uvi']/dfSun['monto']
+        fig = px.sunburst(dfSun, path=['clase','subclase','empresa','obra','uvi'], values='monto',
+                        color='monto', hover_data=['subclase'],
+                        color_continuous_scale='plasma',
+                        color_continuous_midpoint=np.average(media, weights=dfSun['monto']),
+                        title='Certificados/presupuesto')
+        config={'toImageButtonOptions': {'filename': 'Certificados/presupuesto'},
+                'displaylogo': False
+            }
+        sun = fig.to_html(config=config)
+    except:
+        sun = ''
+    # Grafico de arbol ideal para mostrar la evolución de montos certificados por clase/obra/certificado
+    dfTreemap = dfSun
+    try:
+        dfTreemap['avance'] = round(dfTreemap['uvi']/dfTreemap['monto']*100,2)
+        fig = px.treemap(dfTreemap, path=[px.Constant("Todas las Empresas"), 'empresa','obra','monto','avance'], values='avance',
+                        color='avance', hover_data=['empresa'],
+                        color_continuous_scale='blues',
+                        color_continuous_midpoint=np.average(dfTreemap['avance'], weights=dfTreemap['monto']),
+                        title='Avance de Obras agrupado por Empresa')
+        fig.update_layout(margin = dict(t=50, l=25, r=25, b=25))
+        config={'toImageButtonOptions': {'filename': 'Avance de Obras agrupado por Empresa'},
+                'displaylogo': False
+            }
+        Treemap = fig.to_html(config=config)
+    except:
+        Treemap = ''
+    # Grafico de caja y bigotes para mostrar la evolución de coheficiente de avance por obra
+    dataBoxplot = data.values_list('acta__obra__empresa__name','acta__obra__institucion__name','avance_acum_proy','avance_acum_med').annotate(cantidad=Sum('uvi'))
+    dfBoxplot = pd.DataFrame(dataBoxplot, columns=['empresa','obra','av_proy','av_real','count'])
+    try:
+        dfBoxplot['coheficiente'] = round(dfBoxplot['av_real'] / dfBoxplot['av_proy'],2)
+        fig = px.box(dfBoxplot, x="empresa", y="coheficiente", points="all",title='Coheficientes de Avance por Empresa')
+        config={'toImageButtonOptions': {'filename': 'Coheficientes de Avance por Empresa'},
+            }
+        boxplot = fig.to_html()
+    except:
+        boxplot = ''
+    context = {
+        'certificados': certificados,
+        'cant_cert': cant_cert,
+        'monto_cert': monto_cert,
+        'activas': activas,
+        'paralizadas': paralizadas,
+        'finalizadas': finalizadas,
+        'ano': ano,
+        'porc_paralizadas': porc_paralizadas,
+        'porc_finalizadas': porc_finalizadas,
+        'porc_activas': porc_activas,
+        'bar': bar,
+        'sun':sun,
+        'Treemap': Treemap,
+        'boxplot': boxplot,
+    }
+    return render(request, 'soc/dashboard/dashboard.html', context)
 
 # Div Fondo Sustitución
 @permission_required('mioc.add_empresapoliza')

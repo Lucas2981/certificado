@@ -37,10 +37,9 @@
     <div class="card border-0 text-center">
         <div class="display-5 fw-bold pt-2" style="color: #0ecc1e;"><i class="bi bi-cash-coin"></i></div>
         <div class="card-body">
-            <p class="h4 fw-bold">{% if monto_cert < 1000000 %}{{ monto_cert|intcomma }} {% else %}{ monto_cert|intcomma
-                    %}M {% endif %}</p>
+            <p class="h4 fw-bold">UVIs {{ monto_cert|intword }}</p>
                     <p class="h6">Certificados Pagados</p>
-                    <p class="text-muted">en miles de UVIs - {{ ano }}</p>
+                    <p class="text-muted">{{ ano }}</p>
         </div>
     </div>
 </div>

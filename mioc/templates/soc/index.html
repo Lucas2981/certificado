@@ -5,10 +5,6 @@
 {% load humanize %}
 <main class="container py-5">
     <h1 class="display-5 text-center fw-medium pb-3">Dpto. Certificaciones</h1>
-    <!-- inicio de indicadores -->
-    <!-- {% include 'layouts/indicadores.html' } -->
-    <!-- {% include 'layouts/dashboard.html' } -->
-    <!-- fin de indicadores -->
 
     <!-- incio card -->
     <div class="row row-cols-1 row-cols-sm-2 g-sm-3 row-cols-md-3 g-md-3 row-cols-xl-4 g-xl-4 row-cols-xxl-5 g-xxl-4">
@@ -20,7 +16,7 @@
                 </div>
                 <div class="card-body" style="background-color: #ffffff;">
                     <h4 class="card-title text-center">Dasboard</h4>
-                    <a href="#" class="stretched-link"></a>
+                    <a href="{% url 'dashboard' %}" class="stretched-link"></a>
                 </div>
             </div>
         </div>
@@ -55,7 +51,7 @@
                     <i class="bi bi-file-earmark-bar-graph" style="font-size: 4rem; color: #ffffff;"></i>
                 </div>
                 <div class="card-body" style="background-color: #ffffff;">
-                    <h4 class="card-title text-center">Certificados de Avance</h4>
+                    <h4 class="card-title text-center">Certificados AO</h4>
                     <a href="{% url 'certificados' %}" class="stretched-link"></a>
                 </div>
             </div>
@@ -115,7 +111,7 @@
                     <i class="bi bi-file-earmark-diff" style="font-size: 4rem; color: #ffffff;"></i>
                 </div>
                 <div class="card-body" style="background-color: #ffffff;">
-                    <h4 class="card-title text-center">Certificados Anticipo Financiero</h4>
+                    <h4 class="card-title text-center">Certificados AF</h4>
                     <a href="{% url 'anticipo' %}" class="stretched-link"></a>
                 </div>
             </div>
@@ -150,7 +146,7 @@
     
     <section class="container-lg">
         <br>
-        {{ perms.mioc }}
+        <!-- {{ perms.mioc }} -->
     </section>
 </main>
 {% endblock %}
