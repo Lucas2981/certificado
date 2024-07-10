@@ -17,5 +17,7 @@ def add_user_to_views_group(sender, instance, created, **kwargs):
             group6 = Group.objects.create(name='medicion')
             group7 = Group.objects.create(name='sustitucion')
             group8 = Group.objects.create(name='visita')
+            group9 = Group.objects.create(name='empresa_soc')
+            group10 = Group.objects.create(name='inspector_soc')
         instance.user.groups.add(group8)
 

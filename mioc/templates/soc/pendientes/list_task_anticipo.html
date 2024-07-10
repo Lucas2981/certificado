@@ -7,14 +7,14 @@
     <div class="accordion-item">
         <h2 class="accordion-header">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                data-bs-target="#flush-collapseFour" aria-expanded="false" aria-controls="flush-collapseFour">
+                data-bs-target="#flush-collapseFive" aria-expanded="false" aria-controls="flush-collapseFive">
                 <li class="ps-4">Anticipos Financieron a definir:</li>
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{{ pend_anticipo }}</span>
                 <span class="visually-hidden">mensajes sin leer</span>
                 </span>
             </button>
         </h2>
-        <div id="flush-collapseFour" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
+        <div id="flush-collapseFive" class="accordion-collapse collapse" data-bs-parent="#accordionFlushExample">
             <div class="accordion-body">
                 <!-- Tasks view # -->
                 <div class="table-responsive">
@@ -36,7 +36,7 @@
                                 <td>{{z.institucion.name}}</td>
                                 <td>{{z.institucion.location.NOMLOC}}</td>
                                 <td>{{z.empresa.name}}</td>
-                                <td>{{z.monto_uvi|intword}}</td>
+                                <td>${{z.monto_contrato|intword}}</td>
                             </tr>
                             {% endfor %}
                         </tbody>

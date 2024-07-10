@@ -31,9 +31,9 @@ SECRET_KEY = os.environ.get('SECRET_KEY', default='your secret key')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = 'RENDER' not in os.environ
 
-# ALLOWED_HOSTS = ['c46c-181-84-83-7.ngrok-free.app','localhost:80', '127.0.0.1:80']
-CSRF_TRUSTED_ORIGINS = ['https://ecce-181-110-168-237.ngrok-free.app']
-ALLOWED_HOSTS = ['192.168.1.55','127.0.0.1','ecce-181-110-168-237.ngrok-free.app','localhost:80']
+VAR_NGROK = 'fa19-186-125-93-230.ngrok-free.app' 
+CSRF_TRUSTED_ORIGINS = [f'https://{VAR_NGROK}']
+ALLOWED_HOSTS = ['192.168.1.55','127.0.0.1',VAR_NGROK,'localhost:8000']
 
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     'django.contrib.humanize',
+    'django_dump_load_utf8',
     'mioc',
     'sesion',
     'roles.apps.RolesConfig',

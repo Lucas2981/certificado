@@ -59,9 +59,11 @@ urlpatterns = [
     path('obras/inicio/<int:pk>/editar/',login_required(views.editar_actas_inicio), name='editar_inicio'),
     path('obras/inicio/<int:pk>/elimiar/',login_required(views.borrar_actas_inicio), name='eliminar_inicio'),
     path('obras/inicio/',login_required(views.lista_actas_inicio), name='inicio'),
+    path('obras/acta/<int:pk>/validar',login_required(views.validar_acta), name='validar_acta'),
     # Estructuras
     path('obras/estructura/nueva',login_required(views.crear_estructura), name='nueva_estructura'),
     path('obras/estructura/<int:pk>/editar/',login_required(views.editar_estructura), name='editar_estructura'),
     path('obras/estructura/<int:pk>/elimiar/',login_required(views.borrar_estructura), name='eliminar_estructura'),
     path('obras/estructura/',login_required(views.lista_estructura), name='estructuras'),
+    path('obras/estructura/inspector/',login_required(views.lista_estructura_inspector), name='estructuras_inspector'),
 ]

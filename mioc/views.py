@@ -9,8 +9,8 @@ from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 import numpy as np
-from . models import ActaMedicion, ActasInicio, ActasObras, AnticipoFinanciero, Certificados, DispoInspector, Estructuras, Memorias, Obras, EmpresaPoliza, Polizas
-from . forms import ActaInicioForm, ActaMedicionForm, ActaMedicionFormEdit, ActasObrasFormEdit, AntidipoFinancieroForm, CertificadoForm, CertificadoViewForm, DispoInspForm, DispoInspFormEdit, EstructuraForm, MemoriaForm, ObraFormAll, ObraFormActas, EmpresaPolizaForm, ActasObrasForm, PolizaForm
+from . models import ActaMedicion, ActaMedicionValidacion, ActasInicio, ActasObras, AnticipoFinanciero, Certificados, DispoInspector, Estructuras, Memorias, Obras, EmpresaPoliza, Polizas
+from . forms import ActaInicioForm, ActaInicioFormEdit, ActaMedicionForm, ActaMedicionFormEdit, ActaMedicionValidatedForm, ActasObrasFormEdit, AntidipoFinancieroForm, AntidipoFinancieroFormEdit, CertificadoForm, CertificadoViewForm, DispoInspForm, DispoInspFormEdit, EstructuraForm, EstructuraFormEdit, MemoriaForm, ObraFormAll, ObraFormActas, EmpresaPolizaForm, ActasObrasForm, ObraFormAllEdit, PolizaForm, PolizaFormEdit
 from datetime import datetime, date
 
 from plotly.offline import plot
@@ -55,7 +55,7 @@ def index(request):
             pend_anticipo = ''
     except:
         pend_anticipo = ''
-    # Obras para crear extructuras
+    # Obras sin extructura informada
     sin_estructuras = Obras.objects.filter(estructuras__isnull=True, dispoinspector__isnull=False)
     try:
         if len(sin_estructuras) > 0:
@@ -64,6 +64,24 @@ def index(request):
             pend_estructuras = ''
     except:
         pend_estructuras = ''
+    # Actas de mediciones para validar
+    actas_sin_validar = ActaMedicion.objects.filter(actamedicionvalidacion__isnull=True)
+    try:
+        if len(actas_sin_validar) > 0:
+            pend_acta_validar = len(actas_sin_validar)
+        else:
+            pend_acta_validar = ''
+    except:
+        pend_acta_validar = ''
+    # Actas de mediciones sin certificado
+    obras_sin_certificado = ActaMedicion.objects.filter(actamedicionvalidacion=True)
+    try:
+        if len(obras_sin_certificado) > 0:
+            pend_certificado = len(obras_sin_certificado)
+        else:
+            pend_certificado = ''
+    except:
+        pend_certificado = ''
     context = {
         'obras_sin_poliza':obras_sin_poliza,
         'pend_poliza':pend_poliza,
@@ -76,6 +94,10 @@ def index(request):
         'pend_anticipo':pend_anticipo,
         'sin_estructuras':sin_estructuras,
         'pend_estructuras':pend_estructuras,
+        'actas_sin_validar':actas_sin_validar,
+        'pend_acta_validar':pend_acta_validar,
+        'obras_sin_certificado':obras_sin_certificado,
+        'pend_certificado':pend_certificado
     }
     return render(request, 'soc/index.html', context)
 
@@ -196,12 +218,19 @@ def create_empresa(request):
         })
     else:
         form = EmpresaPolizaForm(request.POST)
-        if form.is_valid():
-            nueva_empresa = form.save(commit=False)
-            nueva_empresa.creaEmpresa = request.user
-            nueva_empresa.save()
-            messages.success(request, f'Nueva empresa creada!')
-            return redirect('aseguradora')
+        try:
+            if form.is_valid():
+                nueva_empresa = form.save(commit=False)
+                nueva_empresa.creaEmpresa = request.user
+                nueva_empresa.save()
+                messages.success(request, f'Nueva empresa creada!')
+                return redirect('aseguradora')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'soc/polizas/fondo_reparo_crear.html', {
+                'form': form,
+                'error': error_message
+            })
 @permission_required('mioc.change_empresapoliza')
 def edit_empresa(request, pk):
     if request.method == 'GET':
@@ -270,20 +299,20 @@ def crear_poliza(request):
 def editar_poliza(request, pk):
     poliza = get_object_or_404(Polizas, pk=pk)
     if request.method == 'GET':
-        form = PolizaForm(instance=poliza)
+        form = PolizaFormEdit(instance=poliza)
         return render(request, 'soc/polizas/poliza_editar.html', {
             'form': form
         })
     else:
         try:
             poliza = get_object_or_404(Polizas, pk=pk)
-            form = PolizaForm(request.POST, instance=poliza)
+            form = PolizaFormEdit(request.POST, instance=poliza)
             form.save()
             messages.success(request, f'Registro editado!')
             return redirect('poliza')
         except ValueError:
             poliza = get_object_or_404(Polizas, pk=pk)
-            form = PolizaForm(instance=poliza)
+            form = PolizaFormEdit(instance=poliza)
             return render(request, 'soc/polizas/poliza_editar.html', {
                 'form': form,
                 'error': 'Error al editar poliza'
@@ -421,7 +450,7 @@ def editar_certificado(request, pk):
 def borrar_certificado(request, pk):
     certificado = get_object_or_404(Certificados, pk=pk)
     certificado.delete()
-    messages.success(request, f'Certificado {certificado.nro_cert} eliminado!')
+    messages.success(request, f'Certificado {certificado.acta.acta} eliminado!')
     return redirect('certificados')
 @permission_required('mioc.view_certificados')
 def ver_certificado(request, pk):
@@ -554,12 +583,12 @@ def crear_actas_inicio(request):
 def editar_actas_inicio(request, pk):
     acta = get_object_or_404(ActasInicio, pk=pk)
     if request.method == 'GET':
-        form = ActaInicioForm(instance=acta)
+        form = ActaInicioFormEdit(instance=acta)
         return render(request, 'soc/actas/actas_inicio_editar.html', {
             'form': form
         })
     else:
-        form = ActaInicioForm(request.POST, instance=acta)
+        form = ActaInicioFormEdit(request.POST, instance=acta)
         try:
             if form.is_valid():
                 dispo_inspector = form.save(commit=False)
@@ -589,7 +618,7 @@ def lista_actas_inicio(request):
     if queryset:
         actas = ActasInicio.objects.filter(
             Q(obra__institucion__name__icontains=queryset) |
-            Q(acta__icontains=queryset) |
+            Q(obra__expedientes__icontains=queryset) |
             Q(user__username__icontains=queryset),
         ).distinct().order_by('id',)
     return render(request, 'soc/actas/actas_inicio_lista.html', {'entity': actas, 'paginator': paginator })
@@ -682,25 +711,25 @@ def crear_obra(request):
         except ValidationError as e:
             error_message = e.messages[0]
             return render(request, 'soc/obras/obra_crear.html', {'form': form, 'error': error_message})
-    return render(request, 'soc/obras/obra.html')
+    return render(request, 'soc/obras/obras_lista.html')
 @permission_required('mioc.change_obras')
 def editar_obra(request, pk):
     obra = get_object_or_404(Obras, pk=pk)
     if request.method == 'GET':
-        form = ObraFormAll(instance=obra)
+        form = ObraFormAllEdit(instance=obra)
         return render(request, 'soc/obras/obra_editar.html', {
             'form': form
         })
     else:
         try:
             obra = get_object_or_404(Obras, pk=pk)
-            form = ObraFormAll(request.POST, instance=obra)
+            form = ObraFormAllEdit(request.POST, instance=obra)
             form.save()
             messages.success(request, f'Registro editado!')
             return redirect('obras')
         except ValueError:
             obra = get_object_or_404(Obras, pk=pk)
-            form = ObraFormAll(instance=obra)
+            form = ObraFormAllEdit(instance=obra)
             return render(request, 'soc/obras/obra_editar.html', {
                 'form': form,
                 'error': 'Error al editar obra'
@@ -719,7 +748,6 @@ def lista_obras(request):
         obras = Obras.objects.filter(
             Q(expedientes__icontains=queryset) |
             Q(institucion__name__icontains=queryset) |
-            Q(inspector__fullname__icontains=queryset) |
             Q(empresa__name__icontains=queryset),
         ).distinct().order_by('institucion',)
     return render(request, 'soc/obras/obras_lista.html', {'entity': obras, 'paginator':paginator })
@@ -765,12 +793,12 @@ def crear_anticipo(request):
 def editar_anticipo(request, pk):
     anticipo = get_object_or_404(AnticipoFinanciero, pk=pk)
     if request.method == 'GET':
-        form = AntidipoFinancieroForm(instance=anticipo)
+        form = AntidipoFinancieroFormEdit(instance=anticipo)
         return render(request, 'soc/dispo/dispo_anticipo_editar.html', {
             'form': form
         })
     else:
-        form = AntidipoFinancieroForm(request.POST, instance=anticipo)
+        form = AntidipoFinancieroFormEdit(request.POST, instance=anticipo)
         form.save()
         messages.success(request, f'Registro editado!')
         return redirect('anticipo')
@@ -793,9 +821,8 @@ def lista_anticipo(request):
     queryset = request.GET.get('buscar')
     if queryset:
         anticipos = AnticipoFinanciero.objects.filter(
-            Q(expediente__icontains=queryset) |
+            Q(obra__expedientes__icontains=queryset) |
             Q(obra__institucion__name__icontains=queryset) |
-            Q(obra__inspector__fullname__icontains=queryset) |
             Q(obra__empresa__name__icontains=queryset),
         ).distinct().order_by('obra__institucion',)
     return render(request, 'soc/dispo/dispo_anticipo_lista.html', {'entity': anticipos, 'paginator':paginator, 'inspectores':inspectores})
@@ -866,6 +893,7 @@ def lista_dispo_inspector(request):
         poliza = DispoInspector.objects.filter(
             Q(obra__institucion__name__icontains=queryset) |
             Q(inspector__fullname__icontains=queryset) |
+            Q(obra__expedientes__icontains=queryset) |
             Q(dispo__icontains=queryset) |
             Q(fecha__icontains=queryset)|
             Q(observacion__icontains=queryset),
@@ -918,6 +946,8 @@ def crear_actas_obras(request):
             if form.is_valid():
                 dispo_inspector = form.save(commit=False)
                 dispo_inspector.user = request.user
+                if dispo_inspector.acta == 0:
+                    dispo_inspector.acta = 1
                 dispo_inspector.save()
                 messages.success(request, f'Nueva disposicion creada!')
                 return redirect('medicion')
@@ -953,7 +983,7 @@ def borrar_actas_obras(request, pk):
     return redirect('medicion')
 
 def lista_actas_obras(request):
-    actas = ActaMedicion.objects.all().order_by('-acta')
+    actas = ActaMedicion.objects.all().order_by('obra__institucion__name','-acta')
     page = request.GET.get('page',1)
     try:
         paginator = Paginator(actas, 5)
@@ -995,12 +1025,12 @@ def crear_estructura(request):
 def editar_estructura(request, pk):
     estructura = get_object_or_404(Estructuras, pk=pk)
     if request.method == 'GET':
-        form = EstructuraForm(instance=estructura)
+        form = EstructuraFormEdit(instance=estructura)
         return render(request, 'soc/obras/obra_estructura_editar.html', {
             'form': form
         })
     else:
-        form = EstructuraForm(request.POST, instance=estructura)
+        form = EstructuraFormEdit(request.POST, instance=estructura)
         try:
             if form.is_valid():
                 dispo_inspector = form.save(commit=False)
@@ -1030,8 +1060,50 @@ def lista_estructura(request):
     if queryset:
         estructuras = Estructuras.objects.filter(
             Q(obra__institucion__name__icontains=queryset) |
+            Q(obra__empresa__name__icontains=queryset) |
+            Q(obra__expedientes__icontains=queryset) |
             Q(link__icontains=queryset) |
             Q(fecha__icontains=queryset) |
             Q(user__username__icontains=queryset),
         ).distinct().order_by('id',)
     return render(request, 'soc/obras/obra_estructura_lista.html', {'entity': estructuras, 'paginator': paginator })
+
+def lista_estructura_inspector(request):
+    estructuras = Estructuras.objects.filter(inspector__user=request.user.pk).order_by('-fecha')
+    page = request.GET.get('page',1)
+    try:
+        paginator = Paginator(estructuras, 5)
+        estructuras = paginator.page(page)
+    except:
+        raise Http404
+    queryset = request.GET.get('buscar')
+    if queryset:
+        estructuras = Estructuras.objects.filter(
+            Q(obra__institucion__name__icontains=queryset) |
+            Q(obra__empresa__name__icontains=queryset) |
+            Q(obra__expedientes__icontains=queryset) |
+            Q(link__icontains=queryset) |
+            Q(fecha__icontains=queryset) |
+            Q(user__username__icontains=queryset),
+        ).distinct().order_by('id',)
+    return render(request, 'soc/obras/obra_estructura_lista_inspector.html', {'entity': estructuras, 'paginator': paginator })
+
+def validar_acta(request, pk):
+    if request.method == 'GET':
+        form = ActaMedicionValidatedForm
+        return render(request, 'soc/medicion/actas_obras_validar.html', {
+            'form': form
+        })
+    else:
+        form = ActaMedicionValidatedForm(request.POST)
+        try:
+            if form.is_valid():
+                validated = form.save(commit=False)
+                validated.acta = get_object_or_404(ActaMedicion, pk=pk)
+                validated.user = request.user
+                validated.save()
+                messages.success(request, f'Acta {validated} validada!')
+                return redirect('medicion')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'soc/medicion/actas_obras_validar.html', {'form': form, 'error': error_message})

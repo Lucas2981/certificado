@@ -1,5 +1,5 @@
 from django.forms import DateInput, ModelForm
-from .models import ActaMedicion, ActasInicio, ActasObras, AnticipoFinanciero, DispoInspector, Estructuras, Memorias, Obras, EmpresaPoliza, Certificados, Polizas, Instituciones
+from .models import ActaMedicion, ActaMedicionValidacion,  ActasInicio, ActasObras, AnticipoFinanciero, DispoInspector, Estructuras, Memorias, Obras, EmpresaPoliza, Certificados, Polizas, Instituciones
 from django import forms
 # llamar librerias de admin para autocompletar
 from django.contrib.admin.widgets import AutocompleteSelect
@@ -10,13 +10,16 @@ class ObraFormAll(ModelForm):
     class Meta:
         model = Obras
         fields = '__all__'
-        # widgets = {
-        #     'institucion': AutocompleteSelect(
-        #         Obras._meta.get_field('institucion').remote_field,
-        #         admin.site,
-        #     )
-        # }
+        widgets = {
+            'inicio': forms.DateInput(
+            attrs={'class': 'form-control', 'type': 'date'}),
+            'fecha_cotrato': forms.DateInput(
+            attrs={'class': 'form-control', 'type': 'date'}),}
 
+class ObraFormAllEdit(ModelForm):
+    class Meta:
+        model = Obras
+        fields = '__all__'
 
 class ObraFormActas(ModelForm):
     class Meta:
@@ -27,7 +30,7 @@ class ObraFormActas(ModelForm):
 class EmpresaPolizaForm(ModelForm):
     class Meta:
         model = EmpresaPoliza
-        fields = ['empresa', 'location', 'telefono']
+        exclude = ['creaEmpresa',]
 
 
 class CertificadoForm(ModelForm):
@@ -76,7 +79,19 @@ class PolizaForm(ModelForm):
     class Meta:
         model = Polizas
         exclude = ['codPol', 'user', 'orden']
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.limitar_opciones_obra()
 
+    def limitar_opciones_obra(self):
+        # Lógica para filtrar las opciones del campo obra
+        obras_ids = Obras.objects.filter(polizas__isnull=True).values_list('codObra', flat=True)
+        self.fields['obra'].queryset = Obras.objects.filter(codObra__in=obras_ids)
+
+class PolizaFormEdit(ModelForm):
+    class Meta:
+        model = Polizas
+        exclude = ['codPol', 'user', 'orden']
 
 class MemoriaForm(ModelForm):
     class Meta:
@@ -89,7 +104,14 @@ class DispoInspForm(ModelForm):
         exclude = ['id', 'user']
         widgets = {'fecha': forms.DateInput(
             attrs={'class': 'form-control','type': 'date'})}
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.limitar_opciones_obra()
 
+    def limitar_opciones_obra(self):
+        # Lógica para filtrar las opciones del campo obra
+        obras_ids = Obras.objects.filter(dispoinspector__inspector__isnull=True).values_list('codObra', flat=True)
+        self.fields['obra'].queryset = Obras.objects.filter(codObra__in=obras_ids)
 class DispoInspFormEdit(ModelForm):
     class Meta:
         model = DispoInspector
@@ -106,21 +128,65 @@ class ActaMedicionFormEdit(ModelForm):
         model = ActaMedicion
         fields = ['obra', 'acta', 'periodo']
 
+class ActaMedicionValidatedForm(ModelForm):
+    class Meta:
+        model = ActaMedicionValidacion
+        fields = ['validated','observacion']
+
 class ActaInicioForm(ModelForm):
     class Meta:
         model = ActasInicio
         fields = ['obra','fecha']
         widgets = {'fecha': forms.DateInput(
             attrs={'class': 'form-control', 'type': 'date'})}
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.limitar_opciones_obra()
 
+    def limitar_opciones_obra(self):
+        # Lógica para filtrar las opciones del campo obra
+        obras_ids = Obras.objects.filter(dispoinspector__inspector__isnull=False, actasinicio__isnull=True).values_list('codObra', flat=True)
+        self.fields['obra'].queryset = Obras.objects.filter(codObra__in=obras_ids)
+
+class ActaInicioFormEdit(ModelForm):
+    class Meta:
+        model = ActasInicio
+        fields = ['obra','fecha']
 class AntidipoFinancieroForm(ModelForm):
     class Meta:
         model = AnticipoFinanciero
-        fields = ['anticipo','dispo','obra','porcentaje','fecha']
+        fields = ['obra','anticipo','dispo','porcentaje','fecha']
         widgets = {'fecha': forms.DateInput(
             attrs={'class': 'form-control', 'type': 'date'})}
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.limitar_opciones_obra()
 
+    def limitar_opciones_obra(self):
+        # Lógica para filtrar las opciones del campo obra
+        obras_ids = Obras.objects.filter(anticipofinanciero__isnull=True).values_list('codObra', flat=True)
+        self.fields['obra'].queryset = Obras.objects.filter(codObra__in=obras_ids)
+
+class AntidipoFinancieroFormEdit(ModelForm):
+    class Meta:
+        model = AnticipoFinanciero
+        fields = ['obra','anticipo','dispo','porcentaje','fecha']
 class EstructuraForm(ModelForm):
     class Meta:
         model = Estructuras
         fields = ('obra','link','fecha')
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.limitar_opciones_obra()
+
+    def limitar_opciones_obra(self):
+        # Lógica para filtrar las opciones del campo obra
+        obras_ids = Obras.objects.filter(estructuras__isnull=True).values_list('codObra', flat=True)
+        self.fields['obra'].queryset = Obras.objects.filter(codObra__in=obras_ids)
+
+class EstructuraFormEdit(ModelForm):
+    class Meta:
+        model = Estructuras
+        fields = ('obra','link','fecha')
+
+

@@ -2,6 +2,7 @@
 {% block content %}
 {% block title %}Polizas de Sustitución{% endblock %}
 {% load static %}
+{% load humanize %}
 <main class="container py-5">
     <h1 class="display-5 text-center fw-medium">Polizas de Sustitución FR</h1>
     <br>
@@ -52,7 +53,7 @@
                     <td>{{x.obra.institucion.name}}</td>
                     <td>{% if x.tiene_poliza == null %}⚠️{% elif x.tiene_poliza == True %}✅{% else %}❌{% endif %}</td>
                     <td>{{x.empresa_poliza}}</td>
-                    <td>{{x.monto_asegurado}}</td>
+                    <td>${{x.monto_asegurado|intcomma}}</td>
                     <td>{{x.user}}</td>
                     <td>
                         <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">

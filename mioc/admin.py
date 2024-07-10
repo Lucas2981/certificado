@@ -33,7 +33,7 @@ class InstitucionesExport(resources.ModelResource):
     class Meta:
         model = Instituciones
         search_fields = ('name', 'clase', 'location')
-        fields = ('name', 'clase', 'location')
+        fields = ('name', 'clase', 'location','frac','radio','geometry')
         ordering = ['name']
 admin.site.register(Instituciones,InstitucionesAdmin)
 

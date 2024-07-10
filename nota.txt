@@ -1,26 +1,82 @@
 pip freeze > requirements.txt #para crear el archivo
 pip install -r requirements.txt #para instalar las librerias
 
+guardar
+python manage.py dumpdatautf8 --indent 2 -e admin_interface.theme  --output db_bu.json
 
+respaldar
+python manage.py loaddatautf8 db_bu.json
 
-This is how I did it in 2021:
+usage: manage.py dumpdatautf8 [-h] [--format FORMAT] [--indent INDENT] [--database DATABASE] [-e EXCLUDE] [--natural-foreign] [--natural-primary] [-a] [--pks PRIMARY_KEYS] [-o OUTPUT] [--version] [-v {0,1,2,3}]
+                              [--settings SETTINGS] [--pythonpath PYTHONPATH] [--traceback] [--no-color] [--force-color] [--skip-checks]
+                              [app_label[.ModelName] ...]
+------------------------------------------------------------------------------------------------
+AMBIENTE
 
-Enter Ctrl+Shift+P in your vs code.
+ARQUITECTURA
+Edificios de ciencia y tecnología
+Edificios destinados a actividades culturales
+Edificios educativos
+Edificios para atención y apoyo a grupos específicos
+Edificios para la salud
+Edificios para la seguridad
+Edificios para protección de grupos vulnerables
+Edificios públicos
+Edificios religiosos
+Edificios vinculados a actividades productivas o logísticas
+Espacios de protección/conservación ambiental
+Espacios de renovación urbana
+Infraestructura recreativa y cultural
+Monumentos históricos
 
-Locate your Virtual Environment:
+COMUNICACIONES
 
-Python: select interpreter > Enter interpreter path > Find
+ENERGIA
+Combustibles Hidrocarburíferos
+Distribución de gas
+Distribución eléctrica
+Generación de energía eléctrica
+Transporte de gas 
+Transporte eléctrico
 
-Once you locate your virtual env select your python version:
+EQUIPAMIENTO URBANO
 
-your-virtual-env > bin > python3.
+EQUIPAMIENTOS PARA LA PRESTACIÓN DE SERVICIOS PÚBLICOS
+Equipamiento educativo
+Equipamiento para la seguridad
+Equipamiento sanitario
+Otros equipamientos
 
-Now in your project you will see .vscode directory created open settings.json inside of it and add:
+FOFESO
+Infraestructura productiva
+Infraestructura sanitaria y hospitalaria, educativa, en vivienda y vial
+Inversión productiva
+Mejora de la infraestructura edilicia de distintas reparticiones y/o organismos públicos
 
-"python.terminal.activateEnvironment": true
+MINERIA
+PROGRAMAS/PROYECTOS SIN INVERSIÓN FÍSICA
 
-don't forget to add comma before to separate it with already present key value pair.
+RECURSOS HIDRICOS
+Estudios técnicos para obras hídricas
+Obras de defensa hídrica
+Obras en cursos de agua
+Obras hídricas de puentes
+Obras hídricas multiproposito
 
-Now restart the terminal.
+SANEAMIENTO
+Cloacas
+Obras mixtas de desagües cloacales, agua potable y/o pluviales
+Pluvial
+Provisión de agua potable
+Saneamiento ambiental
+Tratamiento de agua potable
+Tratamiento de residuos
 
-You should see your virtual environment activated automatically.
+TRANSPORTE
+TURISMO
+VIALIDAD
+
+VIVIENDA / HÁBITAT
+Mejoramiento de viviendas
+Obras de infraestructura y complementarias
+Vivienda nueva

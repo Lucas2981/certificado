@@ -41,6 +41,7 @@
                 <th>Dispocición</th>
                 <th>Cod Obra</th>
                 <th>Obra</th>
+                <th>Anticipo</th>
                 <th>Porcentaje</th>
                 <th>Fecha</th>
                 <th>Registró</th>
@@ -52,6 +53,7 @@
                     <td class="fw-semibold">{{x.dispo}}</td>
                     <td>{{x.obra.codObra}}</td>
                     <td>{{x.obra.institucion.name}}</td>
+                    <td>{{x.anticipo}}</td>
                     <td>{{x.porcentaje}} %</td>
                     <td>{{x.fecha}}</td>
                     <td>{{x.user}}</td>
@@ -64,7 +66,7 @@
                             <a type="button" class="btn btn-outline-info" href="#"><i class="bi bi-search"></i></a>
                             {% endif %}
                             {% if perms.mioc.change_dispoinspector %}
-                            <a type="button" class="btn btn-outline-success" href="{% url 'editar_dispo_inspe' x.id %}"><i class="bi bi-pencil-square"></i></a>
+                            <a type="button" class="btn btn-outline-success" href="{% url 'editar_anticipo' x.id %}"><i class="bi bi-pencil-square"></i></a>
                             {% endif %}
                             {% if perms.mioc.delete_dispoinspector %}
                             <a type="button" class="btn btn-outline-danger" href="{% url 'eliminar_anticipo' x.id %}"><i class="bi bi-trash3"></i></a>

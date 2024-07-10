@@ -20,7 +20,6 @@ token = os.environ.get('API_TOKEN_2')
 
 
 class Location(models.Model):
-    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
     CODPROV = models.CharField(max_length=2, verbose_name='Código de Provincia')
     NOMPROV = models.CharField(max_length=20, verbose_name='Nombre de Provincia')
     CODDEPTO = models.CharField(max_length=3, verbose_name='Código de Departamento')
@@ -55,10 +54,12 @@ class Clases(models.Model):
 
 
 class Instituciones(models.Model):
-    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
     name = models.CharField(max_length=200, verbose_name='Institución')
     clase = models.ForeignKey(Clases, on_delete=models.CASCADE, verbose_name='Tipo de Institución')
     location = models.ForeignKey(Location, on_delete=models.CASCADE, verbose_name='Ubicación')
+    domicilio = models.CharField(max_length=150, blank=True, null=True, verbose_name='Domicilio')
+    frac = models.CharField(max_length=2, blank=True, null=True, verbose_name='Fracción')
+    radio = models.CharField(max_length=2, blank=True, null=True, verbose_name='Radio')
     geometry = models.CharField(max_length=150, blank=True, null=True, verbose_name='Georeferencia')
 
     class Meta:
@@ -87,19 +88,14 @@ class Titulos(models.Model):
 
 
 class Empresas(models.Model):
-    id = models.BigAutoField(
-        auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    cuit = models.CharField(max_length=11, verbose_name='CUIT', unique=True)
     name = models.CharField(max_length=200, verbose_name='Nombres')
-    propietario = models.CharField(
-        max_length=200, verbose_name='Propietario', blank=True, null=True)
-    representante_tecnico = models.CharField(
-        max_length=200, verbose_name='Representante Técnico', blank=True, null=True)
-    location = models.ForeignKey(
-        Location, on_delete=models.CASCADE, verbose_name='Ubicación', blank=True, null=True)
-    calle = models.CharField(
-        max_length=200, verbose_name='Calle', blank=True, null=True)
-    telephone = models.CharField(
-        max_length=50, verbose_name='Teléfono', blank=True, null=True)
+    propietario = models.CharField(max_length=200, verbose_name='Propietario', blank=True, null=True)
+    representante_tecnico = models.CharField(max_length=200, verbose_name='Representante Técnico', blank=True, null=True)
+    location = models.ForeignKey(Location, on_delete=models.CASCADE, verbose_name='Ubicación', blank=True, null=True)
+    calle = models.CharField(max_length=200, verbose_name='Calle', blank=True, null=True)
+    telephone = models.CharField(max_length=50, verbose_name='Teléfono', blank=True, null=True)
     email = models.EmailField(verbose_name='Correo', blank=True, null=True)
 
     class Meta:
@@ -116,7 +112,7 @@ class Inspectores(models.Model):
     name = models.CharField(max_length=200, verbose_name='Nombres')
     surname = models.CharField(max_length=200, verbose_name='Apellidos')
     titulo = models.ForeignKey(Titulos, on_delete=models.CASCADE, verbose_name='Título')
-    dni = models.CharField(max_length=8, verbose_name='DNI')
+    dni = models.CharField(max_length=8, verbose_name='DNI', unique=True)
     telephone = models.CharField(max_length=50, verbose_name='Teléfono')
     email = models.EmailField(verbose_name='Correo')
     fullname = models.CharField(max_length=200, editable=False, blank=True, null=True, verbose_name='Inspector')
@@ -125,7 +121,7 @@ class Inspectores(models.Model):
     class Meta:
         verbose_name = 'Inspector'
         verbose_name_plural = 'Inspectores'
-        ordering = ['name']
+        ordering = ['fullname']
 
     def save(self, *args, **kwargs):
         # Calcular la fecha de entrega
@@ -178,16 +174,11 @@ def UVI_BD(user_id, token):
 
 
 class EmpresaPoliza(models.Model):
-    id = models.BigAutoField(
-        auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
-    empresa = models.CharField(
-        max_length=50, verbose_name='Nombre de empresa aseguradora')
-    location = models.CharField(
-        max_length=50, null=True, blank=True, verbose_name='Domicilio')
-    telefono = models.CharField(
-        max_length=10, null=True, blank=True, verbose_name='Teléfono')
-    creaEmpresa = models.ForeignKey(
-        User, on_delete=models.CASCADE, verbose_name='Empresa creada por', default=1)
+    cuit = models.CharField(max_length=11, verbose_name='CUIT')
+    empresa = models.CharField(max_length=50, verbose_name='Nombre de empresa aseguradora')
+    location = models.CharField(max_length=100, null=True, blank=True, verbose_name='Domicilio')
+    telefono = models.CharField(max_length=11, null=True, blank=True, verbose_name='Teléfono')
+    creaEmpresa = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Empresa creada por', default=1)
 
     class Meta:
         verbose_name = 'Aseguradora'
@@ -196,23 +187,31 @@ class EmpresaPoliza(models.Model):
 
     def __str__(self):
         return self.empresa
-
+    def save(self, *args, **kwargs):
+        if EmpresaPoliza.objects.filter(cuit=self.cuit).exclude(pk=self.pk).exists():
+            raise ValidationError(
+                f'Ese CUIT ya esta registrado en otra aseguradora')
+        super().save(*args, **kwargs)
 
 class Obras(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
-    expedientes = models.CharField(max_length=30, verbose_name='Expediente')
+    expedientes = models.CharField(max_length=30, verbose_name='Expediente', unique=True)
+    dispo_contrato = models.CharField(max_length=30, verbose_name='Dispo. Contrato', unique=True)
+    fecha_dispo = models.DateField(verbose_name='Fecha de dispo de Aceptación de Contrato')
     codObra = models.CharField(max_length=200, verbose_name='Cod. Obra', editable=False, blank=True, null=True)
     institucion = models.ForeignKey(Instituciones, on_delete=models.CASCADE, verbose_name='Institución')
-    empresa = models.ForeignKey(Empresas, on_delete=models.CASCADE, verbose_name='Empresa', blank=True, null=True)
-    inicio = models.DateField(verbose_name='Fecha de inicio')
+    empresa = models.ForeignKey(Empresas, on_delete=models.CASCADE, verbose_name='Empresa')
+
+    inicio = models.DateField(verbose_name='Fecha de inicio') # este debe salir x acta de inicio en curso
+
     uvi = models.ForeignKey(Uvis, on_delete=models.CASCADE,verbose_name='Uvi', editable=False, blank=True, null=True)
     plazo = models.IntegerField(verbose_name='Plazo Contractual (días)')
-    vencimiento_contractual = models.DateField(verbose_name='Vencimiento Contractual', blank=True, null=True)
-    nombre_obra = models.CharField(max_length=250, verbose_name='Carátula Obra', null=True, blank=True)
-    monto_contrato = models.FloatField(verbose_name='Monto de contrato ($)', blank=True, null=True)
-    fecha_cotrato = models.DateField(verbose_name='Fecha de contrato', blank=True, null=True)
+    vencimiento_contractual = models.DateField(verbose_name='Vencimiento Contractual',editable=False,blank=True, null=True)
+    nombre_obra = models.CharField(max_length=250, verbose_name='Carátula Obra')
+    monto_contrato = models.FloatField(verbose_name='Monto de contrato ($)')
+    fecha_cotrato = models.DateField(verbose_name='Fecha de contrato')
     monto_uvi = models.FloatField(verbose_name='Monto de contrato (UVIS)')
-    valor_uvi_contrato = models.FloatField(verbose_name='Valor UVI contrato', blank=True, null=True)
+    valor_uvi_contrato = models.FloatField(verbose_name='Valor UVI a fecha de contrato')
 
     class Meta:
         verbose_name = 'Obra'
@@ -220,7 +219,7 @@ class Obras(models.Model):
         ordering = ['institucion']
 
     def __str__(self):
-        return f'{self.institucion.name} - {self.codObra}'
+        return f'{self.institucion.name} - {self.expedientes}'
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)  # Save the object first
@@ -237,7 +236,7 @@ class Obras(models.Model):
 class Polizas(models.Model):
     codPol = models.CharField(max_length=200, verbose_name='Cod. Poliza', editable=False, unique=True, null=True)
     obra = models.ForeignKey(Obras, on_delete=models.CASCADE, verbose_name='Obra')
-    tiene_poliza = models.BooleanField(null=True, blank=True, verbose_name='Presenta póliza de sustitución?')
+    tiene_poliza = models.BooleanField(null=True, verbose_name='Presenta póliza de sustitución?')
     acta_fondo_reparo = models.CharField(max_length=30, blank=True, null=True, verbose_name='Póliza de sustitución Fondo de Reparo')
     poliza_sustitucion = models.IntegerField(null=True, blank=True, verbose_name='N° Póliza Fondo de Reparo')
     empresa_poliza = models.ForeignKey(EmpresaPoliza, on_delete=models.CASCADE, blank=True, null=True, verbose_name='Empresa aseguradora')
@@ -457,19 +456,10 @@ class ActaMedicion(models.Model):
         verbose_name_plural = 'Actas de Medición'
     def __str__(self):
         return f'Acta {str(self.acta).zfill(2)} - {self.obra.codObra}@{self.obra.institucion.name}' 
-    
-    def clean(self):
-        if self.pk is None:
-            pass
+
     def validate_unique(self, exclude=None):
             if self.pk is None: 
                 return
-            try:
-                certs = ActaMedicion.objects.filter(obra__codObra=self.obra.codObra, acta=self.acta).exclude(pk=self.pk)
-                if certs.exists():
-                    raise ValidationError('Esta obra ya cuenta con Acta N° %s' % self.acta)
-            except:
-                raise
     def save(self, *args, **kwargs):
         try:
             ultimo = ActaMedicion.objects.filter(obra=self.obra).order_by('-acta').values('acta')[0]['acta']
@@ -484,10 +474,31 @@ class ActaMedicion(models.Model):
                 raise ValidationError('Esta obra ya cuenta con Acta N° %s' % self.acta)
         except:
             raise
+        try:
+            previous_acta = ActaMedicion.objects.filter(obra=self.obra).order_by('-periodo').values('periodo')[0]['periodo']
+        except IndexError:  # Específicamente capturamos el error de índice
+            previous_acta = '1900-01-01'
+            previous_acta = datetime.strptime(previous_acta, '%Y-%m-%d').date()
+        if (previous_acta.year, previous_acta.month) >= (self.periodo.year, self.periodo.month):
+            raise ValidationError(f'Periodo de medioción esperado {previous_acta.month+1}/{previous_acta.year}, verifique para continuar!')
+        
         super().save(*args, **kwargs)
 
-
-
+class ActaMedicionValidacion(models.Model):
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    acta = models.ForeignKey(ActaMedicion, on_delete=models.CASCADE, verbose_name='Acta')
+    validated = models.BooleanField(verbose_name='Validada para certificar',blank=True, null=True)
+    observacion = models.TextField(max_length=1000, verbose_name='Observación', blank=True, null=True)
+    registro = models.DateField(verbose_name='Fecha de registro', auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Cargado por', default=1)
+    ultimo_editor = models.ForeignKey(User, on_delete=models.CASCADE,related_name='validaciones_modificadas' ,null=True, blank=True, verbose_name='Último usuario editor')
+    ultima_modificacion = models.DateTimeField(auto_now=True, verbose_name='Fecha y hora de última modificación', blank=True, null=True)
+    class Meta:
+        verbose_name = 'Acta de Validación'
+        verbose_name_plural = 'Actas de Validación'
+    def __str__(self):
+        return f'Acta de Validación {self.acta.acta}@{self.acta.obra.institucion.name}'
+    
 class Certificados(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
     acta = models.ForeignKey(ActaMedicion, on_delete=models.CASCADE, verbose_name='Acta de Medición')
@@ -501,13 +512,6 @@ class Certificados(models.Model):
     creado = models.DateTimeField(auto_now_add=True, verbose_name='Fecha y hora de creación')
     ultimo_editor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='certificados_modificados', null=True, blank=True, verbose_name='Último usuario editor')
     ultima_modificacion = models.DateTimeField(auto_now=True, verbose_name='Fecha y hora de última modificación', blank=True, null=True)
-    # obra = models.ForeignKey(Obras, on_delete=models.CASCADE, verbose_name='Obra')
-    # nro_cert = models.PositiveIntegerField(verbose_name='Certificado N°')
-    # codCert = models.CharField(max_length=200, verbose_name='Cod. Certificado', unique=True)
-    # fecha = models.DateField(verbose_name='Fecha del certificado')
-    # fecha_acta = models.DateField(verbose_name='Fecha que presenta Acta el Inspector', blank=True, null=True)
-    # periodo = models.CharField(max_length=30, verbose_name='Periodo medido', null=True, blank=True)
-
     class Meta:
         verbose_name = 'Certificado'
         verbose_name_plural = 'Certificados'
@@ -521,6 +525,8 @@ class Certificados(models.Model):
             self.uvi_acum = self.uvi
         
         self.avance_acum_med = round((self.uvi_acum / self.acta.obra.monto_uvi) * 100, 1)
+        if self.avance_acum_med > 100:
+            raise ValidationError(f'Esta superando el monto contratado por un {round(self.avance_acum_med-100,2)}% de más, corrija para continuar!')
         coef_avance = self.avance_acum_med / self.avance_acum_proy
         if coef_avance < 0.9:
             self.coef_avance = False
@@ -528,7 +534,7 @@ class Certificados(models.Model):
             self.coef_avance = True
         super().save(*args, **kwargs)
 
-
+#Ver los siguientes dos modelos, ya que hay que refactorizarlos
 class ActaTipo(models.Model):
     id = models.BigAutoField(
         auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
@@ -571,20 +577,24 @@ class ActasObras(models.Model):
 class ActasInicio(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
     obra = models.ForeignKey(Obras, on_delete=models.CASCADE, verbose_name='Obra')
-    fecha = models.DateField(verbose_name='Fecha de inicio', blank=True, null=True)
+    fecha = models.DateField(verbose_name='Fecha de inicio')
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Cargado por', default=1)
 
     class Meta:
         verbose_name = 'Acta de inicio'
         verbose_name_plural = 'Actas de inicio'
         ordering = ['obra']
-    def clean(self):
-        if self.pk is None:
-            pass
     def save(self, *args, **kwargs):
         if ActasInicio.objects.filter(obra__codObra=self.obra.codObra).exclude(pk=self.pk).exists():
             raise ValidationError(
                 f'Esta obra ya cuenta con acta de inicio')
+        try:
+            fecha_dispo_insp = DispoInspector.objects.filter(obra=self.obra).order_by('fecha').values('fecha')[0]['fecha']
+        except IndexError:
+            fecha_dispo_insp = '1900-01-01'
+            fecha_dispo_insp = datetime.strptime(fecha_dispo_insp, '%Y-%m-%d').date()
+        if (fecha_dispo_insp) > (self.fecha):
+            raise ValidationError(f'El acta de inicio debe ser igual o posterior a la disposición de inspector: {str(fecha_dispo_insp.day).zfill(2)}/{str(fecha_dispo_insp.month).zfill(2)}/{fecha_dispo_insp.year}')
         super().save(*args, **kwargs)
 
 
@@ -621,7 +631,7 @@ class Memorias(models.Model):
             Descripción detallada del problema, incluyendo causas, consecuencias y posibles impactos. Análisis de las diferentes perspectivas o enfoques sobre el problema. Evidencia o datos que sustentan la problemática.
             Solucion planteada:
             Descripción detallada de la solución propuesta para acondicionar la obra, incluyendo fundamentos o argumentos que la sustentan, posibles beneficios o ventajas de la solución y recursos necesarios para su implementación.
-            Resumen:
+            Conclusión:
             Resumen de los puntos clave del informe. Reflexión sobre la viabilidad y potencial impacto de la solución propuesta. Aporte o valor de la obra para abordar el problema.'''
             response = model.generate_content(consulta)
             self.resumen = response.text.replace("**", "")
@@ -654,7 +664,7 @@ class DispoInspector(models.Model):
 
 class AnticipoFinanciero(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
-    anticipo = models.BooleanField(verbose_name='Anticipo',null=True, blank=True)
+    anticipo = models.BooleanField(verbose_name='Anticipo', null=True,default=False)
     dispo = models.CharField(max_length=30, verbose_name='Disposición', null=True, blank=True)
     obra = models.ForeignKey(Obras, on_delete=models.CASCADE, verbose_name='Obra')
     porcentaje = models.FloatField(verbose_name='Porcentaje',null=True, blank=True)
@@ -671,6 +681,13 @@ class AnticipoFinanciero(models.Model):
     def save(self, *args, **kwargs):
         if AnticipoFinanciero.objects.filter(obra__codObra=self.obra.codObra).exclude(pk=self.pk).exists():
             raise ValidationError('Ya existe un anticipo financiero para esta obra')
+        fecha_inicio = ActasInicio.objects.filter(obra__codObra=self.obra.codObra).order_by('fecha').values('fecha')[0]['fecha']
+        if self.fecha==None:
+            fecha_AF = fecha_inicio
+        else:
+            fecha_AF = self.fecha
+        if (fecha_inicio) > (fecha_AF):
+            raise ValidationError('La fecha del anticipo financiero, no puede ser anterior a la de inicio de obra')
         super().save(*args, **kwargs)
 
 class Estructuras(models.Model):
@@ -678,6 +695,7 @@ class Estructuras(models.Model):
     obra = models.ForeignKey(Obras, on_delete=models.CASCADE, verbose_name='Obra')
     link = models.URLField(verbose_name='Link', null=True, blank=True)
     fecha = models.DateField(verbose_name='Fecha', null=True, blank=True)
+    inspector = models.ForeignKey(Inspectores, on_delete=models.CASCADE, verbose_name='Inspector',editable=False ,null=True, blank=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Cargado por', default=1)
     class Meta:
         verbose_name = 'Estructura'
@@ -688,4 +706,7 @@ class Estructuras(models.Model):
     def save(self, *args, **kwargs):
         if Estructuras.objects.filter(obra__codObra=self.obra.codObra).exclude(pk=self.pk).exists():
             raise ValidationError('Ya existe una estructura para esta obra')
+        insp_asignado = DispoInspector.objects.filter(obra__codObra=self.obra.codObra).order_by('-fecha').first()
+        if insp_asignado:
+            self.inspector = insp_asignado.inspector  # Assign the actual Inspectores instance
         super().save(*args, **kwargs)

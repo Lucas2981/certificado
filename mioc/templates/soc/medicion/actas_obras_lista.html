@@ -56,7 +56,7 @@
     <div class="table-responsive">
         <table class="table table-hover">
             <thead class="table-success">
-                <th>#</th>
+                <th>Expte. de Obra</th>
                 <th>Cod Obra</th>
                 <th>Obra</th>
                 <th>Periodo certificado</th>
@@ -68,7 +68,7 @@
             <tbody>
                 {% for actas in entity %}
                 <tr>
-                    <td class="fw-semibold">{{ forloop.counter }}</td>
+                    <td class="fw-semibold">{{ actas.obra.expedientes }}</td>
                     <td >{{ actas.obra.codObra }}</td>
                     <td>{{ actas.obra.institucion.name }}</td>
                     <td>{{ actas.periodo|date:"F y" }}</td>
@@ -77,16 +77,15 @@
                     <td>{% if actas.ultimo_editor == None %}❌{% else %} {{ actas.ultimo_editor }} el {{ actas.ultima_modificacion }} {% endif %}</td>
                     <td>
                         <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">
-                            <a type="button" class="btn btn-outline-info" href="#"><i class="bi bi-search"></i></a>
                             <a type="button" class="btn btn-outline-info"
-                                href="#"><i class="bi bi-funnel"></i></a>
+                            href="#"><i class="bi bi-funnel"></i></a>
                             {% if perms.mioc.change_certificados %}
                             <a type="button" class="btn btn-outline-success"
                                 href="#"><i class="bi bi-pencil-square"></i></a>
                             {% endif %}
                             {% if perms.mioc.delete_certificados %}
                             <a type="button" class="btn btn-outline-danger"
-                                href="#"><i class="bi bi-trash3"></i></a>
+                                href="{% url 'eliminar_medicion' actas.id %}"><i class="bi bi-trash3"></i></a>
                             {% endif %}
                         </div>
                     </td>
