@@ -9,6 +9,7 @@ import pandas as pd
 import os
 from dotenv import load_dotenv
 import google.generativeai as genai
+from dateutil.relativedelta import relativedelta
 
 load_dotenv()
 token = os.environ.get('API_TOKEN')
@@ -195,42 +196,35 @@ class EmpresaPoliza(models.Model):
 
 class Obras(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    PLAZO_TIPO = (('0','Días'), ('1','Meses'), ('2','Años'))
     expedientes = models.CharField(max_length=30, verbose_name='Expediente', unique=True)
     dispo_contrato = models.CharField(max_length=30, verbose_name='Dispo. Contrato', unique=True)
     fecha_dispo = models.DateField(verbose_name='Fecha de dispo de Aceptación de Contrato')
     codObra = models.CharField(max_length=200, verbose_name='Cod. Obra', editable=False, blank=True, null=True)
     institucion = models.ForeignKey(Instituciones, on_delete=models.CASCADE, verbose_name='Institución')
     empresa = models.ForeignKey(Empresas, on_delete=models.CASCADE, verbose_name='Empresa')
-
-    inicio = models.DateField(verbose_name='Fecha de inicio') # este debe salir x acta de inicio en curso
-
     uvi = models.ForeignKey(Uvis, on_delete=models.CASCADE,verbose_name='Uvi', editable=False, blank=True, null=True)
-    plazo = models.IntegerField(verbose_name='Plazo Contractual (días)')
-    vencimiento_contractual = models.DateField(verbose_name='Vencimiento Contractual',editable=False,blank=True, null=True)
+    plazoTipo = models.CharField(max_length=1, verbose_name='Unidad de Tiempo', choices=PLAZO_TIPO, default='0')
+    plazoNro = models.IntegerField(verbose_name='Plazo Contractual')
     nombre_obra = models.CharField(max_length=250, verbose_name='Carátula Obra')
     monto_contrato = models.FloatField(verbose_name='Monto de contrato ($)')
     fecha_cotrato = models.DateField(verbose_name='Fecha de contrato')
     monto_uvi = models.FloatField(verbose_name='Monto de contrato (UVIS)')
     valor_uvi_contrato = models.FloatField(verbose_name='Valor UVI a fecha de contrato')
-
     class Meta:
         verbose_name = 'Obra'
         verbose_name_plural = 'Obras'
         ordering = ['institucion']
-
     def __str__(self):
         return f'{self.institucion.name} - {self.expedientes}'
-
     def save(self, *args, **kwargs):
-        super().save(*args, **kwargs)  # Save the object first
-        # Now self.id has a value
+        super().save(*args, **kwargs)
         self.codObra = f'{str(self.institucion.clase.subname)[:2].upper()}{str(self.id).zfill(4)}{str(self.institucion.location.NOMDEPTO)[:2].upper()}'
-        self.vencimiento_contractual = self.inicio + timedelta(days=self.plazo)
-        try:
-            self.uvi = Uvis.objects.get(fecha=self.inicio)
-        except Uvis.DoesNotExist:
-            pass
-        super().save(*args, **kwargs)  # Save the object again with the updated codObra
+        # try:
+        #     self.uvi = Uvis.objects.get(fecha=self.inicio)
+        # except Uvis.DoesNotExist:
+        #     pass
+        super().save(*args, **kwargs)
 
 
 class Polizas(models.Model):
@@ -455,7 +449,7 @@ class ActaMedicion(models.Model):
         verbose_name = 'Acta de Medición'
         verbose_name_plural = 'Actas de Medición'
     def __str__(self):
-        return f'Acta {str(self.acta).zfill(2)} - {self.obra.codObra}@{self.obra.institucion.name}' 
+        return f'Acta {self.acta} - {self.obra.institucion.name}' 
 
     def validate_unique(self, exclude=None):
             if self.pk is None: 
@@ -490,6 +484,13 @@ class ActaMedicionValidacion(models.Model):
     validated = models.BooleanField(verbose_name='Validada para certificar',blank=True, null=True)
     observacion = models.TextField(max_length=1000, verbose_name='Observación', blank=True, null=True)
     registro = models.DateField(verbose_name='Fecha de registro', auto_now_add=True)
+    
+    uvi = models.FloatField(verbose_name='UVIs del Certificado')
+    uvi_acum = models.FloatField(verbose_name='Cant UVIs acumulados', default=0)
+    avance_acum_proy = models.FloatField(verbose_name='Avance proyectado acumulado (%)', default=0)
+    avance_acum_med = models.FloatField(verbose_name='Avance real acumulado (%)', default=0)
+    coef_avance = models.BooleanField(verbose_name='Coef. Avance (%)', default=False)
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Cargado por', default=1)
     ultimo_editor = models.ForeignKey(User, on_delete=models.CASCADE,related_name='validaciones_modificadas' ,null=True, blank=True, verbose_name='Último usuario editor')
     ultima_modificacion = models.DateTimeField(auto_now=True, verbose_name='Fecha y hora de última modificación', blank=True, null=True)
@@ -498,28 +499,11 @@ class ActaMedicionValidacion(models.Model):
         verbose_name_plural = 'Actas de Validación'
     def __str__(self):
         return f'Acta de Validación {self.acta.acta}@{self.acta.obra.institucion.name}'
-    
-class Certificados(models.Model):
-    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
-    acta = models.ForeignKey(ActaMedicion, on_delete=models.CASCADE, verbose_name='Acta de Medición')
-    expediente = models.CharField(max_length=30, verbose_name='Expediente')
-    uvi = models.FloatField(verbose_name='UVIs del Certificado')
-    uvi_acum = models.FloatField(verbose_name='Cant UVIs acumulados', default=0)
-    avance_acum_proy = models.FloatField(verbose_name='Avance proyectado acumulado (%)', default=0)
-    avance_acum_med = models.FloatField(verbose_name='Avance real acumulado (%)', default=0)
-    coef_avance = models.BooleanField(verbose_name='Coef. Avance (%)', default=False)
-    cargaCert = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Cargado por', default=1)
-    creado = models.DateTimeField(auto_now_add=True, verbose_name='Fecha y hora de creación')
-    ultimo_editor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='certificados_modificados', null=True, blank=True, verbose_name='Último usuario editor')
-    ultima_modificacion = models.DateTimeField(auto_now=True, verbose_name='Fecha y hora de última modificación', blank=True, null=True)
-    class Meta:
-        verbose_name = 'Certificado'
-        verbose_name_plural = 'Certificados'
-        ordering = ['acta__obra', 'acta__acta']
-
     def save(self, *args, **kwargs):
+        if ActaMedicionValidacion.objects.filter(acta=self.acta).exclude(pk=self.pk).exists():
+            raise ValidationError('Ya existe una validación para esta acta')
         try:
-            anterior = Certificados.objects.filter(Q(acta__obra=self.acta.obra) & Q(acta__acta=self.acta.acta-1))
+            anterior = ActaMedicionValidacion.objects.filter(Q(acta__obra=self.acta.obra) & Q(acta__acta=self.acta.acta-1))
             self.uvi_acum = self.uvi + anterior.values('uvi_acum')[0]['uvi_acum']
         except:
             self.uvi_acum = self.uvi
@@ -532,52 +516,118 @@ class Certificados(models.Model):
             self.coef_avance = False
         else:
             self.coef_avance = True
+
         super().save(*args, **kwargs)
 
-#Ver los siguientes dos modelos, ya que hay que refactorizarlos
-class ActaTipo(models.Model):
-    id = models.BigAutoField(
-        auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
-    name = models.CharField(max_length=200, verbose_name='Tipo de Acta')
-
-    class Meta:
-        verbose_name = 'Tipo de Acta'
-        verbose_name_plural = 'Tipos de Actas'
-        ordering = ['name']
-
-    def __str__(self):
-        return self.name
-
-
-class ActasObras(models.Model):
+    
+class Certificados(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
-    obra = models.ForeignKey(Obras, on_delete=models.CASCADE, verbose_name='Obra')
-    tipo = models.ForeignKey(ActaTipo, on_delete=models.CASCADE, verbose_name='Tipo de Acta')
-    fecha = models.DateField(verbose_name='Fecha aplicación Acta', blank=True, null=True)
-    orden = models.PositiveIntegerField(verbose_name='Nro Orden', default=1)
-    dispo = models.CharField(max_length=200, verbose_name='Disposición', blank=True, null=True)
-    codActa = models.CharField(max_length=200, verbose_name='Cod. Acta', editable=False, unique=True, null=True)
-
+    acta = models.ForeignKey(ActaMedicion, on_delete=models.CASCADE, verbose_name='Acta de Medición')
+    expediente = models.CharField(max_length=30, verbose_name='Expediente')
+    cargaCert = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Cargado por', default=1)
+    creado = models.DateTimeField(auto_now_add=True, verbose_name='Fecha y hora de creación')
+    ultimo_editor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='certificados_modificados', null=True, blank=True, verbose_name='Último usuario editor')
+    ultima_modificacion = models.DateTimeField(auto_now=True, verbose_name='Fecha y hora de última modificación', blank=True, null=True)
     class Meta:
-        verbose_name = 'Acta obra'
-        verbose_name_plural = 'Actas obras'
-        ordering = ['obra']
-
-    def clean(self):
-        if self.pk is None:
-            pass
+        verbose_name = 'Certificado'
+        verbose_name_plural = 'Certificados'
+        ordering = ['acta__obra', 'acta__acta']
 
     def save(self, *args, **kwargs):
-        self.codActa = f'{str(self.obra.codObra)}A{str(self.tipo.id).zfill(2)}{str(self.orden).zfill(2)}'
-        if ActasObras.objects.filter(codActa=self.codActa).exclude(pk=self.pk).exists():
+        if Certificados.objects.filter(expediente=self.expediente).exclude(pk=self.pk).exists():
+            raise ValidationError('Ya existe el expediente indicado en otro certificado')
+        super().save(*args, **kwargs)
+
+class dispo_plan_trabajo(models.Model):
+    opciones = (('0', 'Plan de Trabajo Original'), ('1', 'Nuevo Plan de Trabajo'))
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    obra = models.ForeignKey(Obras, on_delete=models.CASCADE, verbose_name='Obra')
+    instrumento = models.CharField(max_length=30, verbose_name='Instrumento en GDE')
+    fecha_aplicacion = models.DateField(verbose_name='Fecha de aplicación')
+    tipo = models.CharField(max_length=1, choices=opciones, verbose_name='Tipo', default='0')
+    nro_plan = models.PositiveIntegerField(verbose_name='Nro. Plan', default=1)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Creado por', default=1)
+    class Meta:
+        verbose_name = 'Dispo. Plan de Trabajo'
+        verbose_name_plural = 'Dispos. Plan de Trabajo'
+        ordering = ['obra']
+    def __str__(self):
+        return f'Plan {str(self.nro_plan).zfill(2)} - {str(self.fecha_aplicacion.day).zfill(2)}/{str(self.fecha_aplicacion.month).zfill(2)}/{str(self.fecha_aplicacion.year)} - {self.obra.institucion}'
+    def save(self, *args, **kwargs):
+        if (self.tipo)=='0':
+            self.nro_plan = 1
+        elif dispo_plan_trabajo.objects.filter(Q(obra__codObra=self.obra.codObra) & Q(tipo='0')).order_by('nro_plan').exists():
+            ultimo = dispo_plan_trabajo.objects.filter(obra__codObra=self.obra.codObra).order_by('nro_plan').values('nro_plan').last()
+            self.nro_plan = ultimo['nro_plan'] + 1
+        else:
+            raise ValidationError(f'La obra aún no cuenta con un plan de trabajo Inicial')
+        if dispo_plan_trabajo.objects.filter(Q(obra__codObra=self.obra.codObra) & Q(nro_plan=self.nro_plan)).exclude(pk=self.pk).exists():
+            raise ValidationError(f'Esta obra ya cuenta con un Plan de Trabajo Original, quizas sea un "Nuevo Plan de Trabajo"?')
+        if dispo_plan_trabajo.objects.filter(instrumento=self.instrumento).exclude(pk=self.pk).exists():
+            raise ValidationError(f'Ya existe un plan de trabajo con el instrumento {self.instrumento}')
+        if (self.obra.fecha_dispo) > (self.fecha_aplicacion):
+            raise ValidationError(f'Revise la fecha de implementación del Plan de Trabajo, ya que no puede ser anterior a la dispo de Aceptación de contrato {self.obra.fecha_dispo.day}/{self.obra.fecha_dispo.month}/{self.obra.fecha_dispo.year}')
+        try:
+            ultimo_certificado = Certificados.objects.filter(acta__obra__codObra=self.obra.codObra).order_by('id').values('acta__periodo').last()['acta__periodo']
+        except:
+            ultimo_certificado = self.obra.fecha_dispo
+        if (ultimo_certificado) > (self.fecha_aplicacion):
+            raise ValidationError(f'Revise la fecha de implementación del Plan de Trabajo, ya que hay certificados con fecha posterior a esta fecha')
+        super().save(*args, **kwargs)
+
+class PlanTrabajo(models.Model):
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    dispo_plan = models.ForeignKey(dispo_plan_trabajo, on_delete=models.CASCADE, verbose_name='Dispo. Plan de Trabajo')
+    periodoNro = models.PositiveIntegerField(verbose_name='Periodo N°')
+    fechaPeriodo = models.DateField(verbose_name='Fecha del Periodo')
+    uvisEsperados = models.FloatField(verbose_name='UVIS Esperados')
+    uvisAcumEsperados = models.FloatField(verbose_name='UVIS Acum. Esperados',default=0)
+    ultimo = models.BooleanField(verbose_name='Ultimo Periodo', default=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Creado por', default=1)
+    class Meta:
+        verbose_name = 'Plan de Trabajo'
+        verbose_name_plural = 'Planes de Trabajo'
+        ordering = ['dispo_plan','periodoNro']
+    def __str__(self):
+        return f'{self.dispo_plan.obra.codObra} - {self.dispo_plan.instrumento} - {self.dispo_plan.nro_plan} - {self.periodoNro}'
+    def save(self, *args, **kwargs):
+        try:
+            ultimo_periodo = PlanTrabajo.objects.filter(dispo_plan=self.dispo_plan).order_by('periodoNro').values('periodoNro').last()['periodoNro']
+        except:
+            ultimo_periodo = 0
+            self.periodoNro = 1
+        if (self.periodoNro - ultimo_periodo > 1):
             raise ValidationError(
-                f'Esta obra ya cuenta con acta {self.tipo.name} N° {self.orden}')
+                f'Revise el nro. de Periodo, ya que esta pendiente el periodo N° {ultimo_periodo + 1}')
+        try:
+            NroX = PlanTrabajo.objects.filter(periodoNro=self.periodoNro, dispo_plan=self.dispo_plan).exclude(pk=self.pk)
+            if NroX.exists():
+                raise ValidationError('Esta obra ya cuenta con ese Periodo')
+        except:
+            raise
+        try:
+            anterior = PlanTrabajo.objects.filter(Q(dispo_plan=self.dispo_plan) & Q(periodoNro=self.periodoNro-1))
+            self.uvisAcumEsperados = self.uvisEsperados + anterior.values('uvisAcumEsperados').last()['uvisAcumEsperados']
+        except:
+            self.uvisAcumEsperados = self.uvisEsperados
+        if (self.uvisAcumEsperados - self.uvisEsperados) == (self.dispo_plan.obra.monto_uvi):
+            raise ValidationError(f'Ya no hay periodos a proyectar, ya que se completo el Plan de Trabajo')
+        elif (self.uvisAcumEsperados) > (self.dispo_plan.obra.monto_uvi):
+            dife = round((self.dispo_plan.obra.monto_uvi) - (self.uvisAcumEsperados - self.uvisEsperados),2)
+            raise ValidationError(f'Revise los UVIS esperados, ya que restan {dife} UVIS para concluir el contrato')
+        if (self.uvisAcumEsperados) == (self.dispo_plan.obra.monto_uvi):
+            PlanTrabajo.objects.filter(dispo_plan=self.dispo_plan).update(ultimo=True)
+            self.ultimo = True
+        else:
+            PlanTrabajo.objects.filter(dispo_plan=self.dispo_plan).update(ultimo=False)
+            self.ultimo = False
         super().save(*args, **kwargs)
 
 class ActasInicio(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
     obra = models.ForeignKey(Obras, on_delete=models.CASCADE, verbose_name='Obra')
     fecha = models.DateField(verbose_name='Fecha de inicio')
+    vencimiento_contractual = models.DateField(verbose_name='Vencimiento Contractual',editable=False,blank=True, null=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Cargado por', default=1)
 
     class Meta:
@@ -595,8 +645,64 @@ class ActasInicio(models.Model):
             fecha_dispo_insp = datetime.strptime(fecha_dispo_insp, '%Y-%m-%d').date()
         if (fecha_dispo_insp) > (self.fecha):
             raise ValidationError(f'El acta de inicio debe ser igual o posterior a la disposición de inspector: {str(fecha_dispo_insp.day).zfill(2)}/{str(fecha_dispo_insp.month).zfill(2)}/{fecha_dispo_insp.year}')
+        fecha_dispo_contrato = Obras.objects.filter(codObra=self.obra.codObra).order_by('id').values('fecha_dispo')[0]['fecha_dispo']
+        if (fecha_dispo_contrato + timedelta(days=30))  < (self.fecha):
+            raise ValidationError(f'La fecha de inicio, no puede superar los 30 dias desde la disposición de aprobacion del contrato')
+        if (self.obra.plazoTipo) == '0':
+            self.vencimiento_contractual = self.fecha + timedelta(days=self.obra.plazoNro)
+        elif (self.obra.plazoTipo) == '1':
+            self.vencimiento_contractual = self.fecha + relativedelta(months=self.obra.plazoNro)
+        else:
+            self.vencimiento_contractual = self.fecha + relativedelta(years=self.obra.plazoNro)
         super().save(*args, **kwargs)
 
+class DispoParalizacion(models.Model):
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    dispo = models.CharField(max_length=30, verbose_name='Disposición de paralización')
+    dispo_plan = models.ForeignKey(dispo_plan_trabajo, on_delete=models.CASCADE, verbose_name='Disposición de Plan de Trabajo')
+    fecha_paralizacion = models.DateField(verbose_name='Fecha de paralización')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Cargado por', default=1)
+
+    class Meta:
+        verbose_name = 'Disposición de paralización'
+        verbose_name_plural = 'Disposiciones de paralización'
+        ordering = ['dispo_plan','fecha_paralizacion']
+    def save(self, *args, **kwargs):
+        if DispoParalizacion.objects.filter(dispo_plan__obra=self.dispo_plan.obra).exclude(pk=self.pk).exists():
+            raise ValidationError(
+                f'Esta obra ya cuenta con disposición de paralización')
+        super().save(*args, **kwargs)
+    def __str__(self):
+        return f'P{self.dispo_plan.nro_plan}@{self.dispo_plan.instrumento} {self.dispo_plan.obra.institucion}'
+
+class DispoReinicio(models.Model):
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    dispo = models.CharField(max_length=30, verbose_name='Disposición de reinicio')
+    dispo_para = models.ForeignKey(DispoParalizacion, on_delete=models.CASCADE, verbose_name='Disposición de Paralización')
+    fecha_reinicio = models.DateField(verbose_name='Fecha de reinicio')
+    dias_pend = models.IntegerField(verbose_name='Días pendientes', default=0)
+    dias_pend_acum = models.IntegerField(verbose_name='Días pendientes acumulados', default=0)
+    nuevo_vencimiento = models.DateField(verbose_name='Nueva Fecha de Vencimiento Contractual', blank=True, null=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Cargado por', default=1)
+
+    class Meta:
+        verbose_name = 'Disposición de reinicio'
+        verbose_name_plural = 'Disposiciones de reinicio'
+        ordering = ['dispo_para','fecha_reinicio']
+    def save(self, *args, **kwargs):
+        if DispoReinicio.objects.filter(dispo_para=self.dispo_para).exclude(pk=self.pk).exists():
+            raise ValidationError(
+                f'Esta obra ya cuenta con disposición de reinicio')
+        self.dias_pend = (self.fecha_reinicio - self.dispo_para.fecha_paralizacion).days
+        try:
+            dias_pend_acum = DispoReinicio.objects.filter(dispo_para=self.dispo_para).order_by('fecha_reinicio').values('dias_pend').last()['dias_pend']
+            self.dias_pend_acum = dias_pend_acum + self.dias_pend
+        except:
+            self.dias_pend_acum = self.dias_pend
+        self.nuevo_vencimiento = ActasInicio.objects.filter(obra=self.dispo_para.dispo_plan.obra).order_by('id').values('vencimiento_contractual')[0]['vencimiento_contractual'] + timedelta(days=self.dias_pend_acum)
+        super().save(*args, **kwargs)
+    def __str__(self):
+        return f'R{self.dispo_para.dispo_plan.nro_plan}@{self.dispo_para.dispo_plan.instrumento} {self.dispo_para.dispo_plan.obra.institucion}'
 
 class Memorias(models.Model):
     id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
@@ -677,7 +783,7 @@ class AnticipoFinanciero(models.Model):
         ordering = ['-fecha']
 
     def __str__(self):
-        return f'{self.obra.institucion} {self.obra.codObra}'
+        return f'{self.obra.institucion} {self.obra.expedientes}'
     def save(self, *args, **kwargs):
         if AnticipoFinanciero.objects.filter(obra__codObra=self.obra.codObra).exclude(pk=self.pk).exists():
             raise ValidationError('Ya existe un anticipo financiero para esta obra')
@@ -688,6 +794,47 @@ class AnticipoFinanciero(models.Model):
             fecha_AF = self.fecha
         if (fecha_inicio) > (fecha_AF):
             raise ValidationError('La fecha del anticipo financiero, no puede ser anterior a la de inicio de obra')
+        super().save(*args, **kwargs)
+
+class CertificadosAF(models.Model):
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    dispo = models.ForeignKey(AnticipoFinanciero, on_delete=models.CASCADE, verbose_name='Obra')
+    expediente = models.CharField(max_length=30, verbose_name='Expediente del certificado AF')
+    monto = models.FloatField(verbose_name='Monto del Certificado')
+    uvi = models.FloatField(verbose_name='UVIs')
+    fecha = models.DateField(verbose_name='Fecha')
+    cargaCert = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Cargado por', default=1)
+    creado = models.DateTimeField(auto_now_add=True, verbose_name='Fecha y hora de creación')
+    # ultimo_editor = models.ForeignKey(User, on_delete=models.CASCADE, related_name='certificados_modificados', null=True, blank=True, verbose_name='Último usuario editor')
+    ultima_modificacion = models.DateTimeField(auto_now=True, verbose_name='Fecha y hora de última modificación', blank=True, null=True)
+    class Meta:
+        verbose_name = 'Certificado AF'
+        verbose_name_plural = 'Certificados Af'
+        ordering = ['-fecha']
+    def save(self, *args, **kwargs):
+        if CertificadosAF.objects.filter(expediente=self.expediente).exclude(pk=self.pk).exists():
+            raise ValidationError(f'Ya existe un expte {self.expediente}, revise para continuar')
+        self.monto = round(self.dispo.porcentaje/100 * self.dispo.obra.monto_contrato,2)
+        self.uvi = round(self.dispo.porcentaje/100 * self.dispo.obra.monto_uvi,2)
+        super().save(*args, **kwargs)
+    def __str__(self):
+        return f'{self.dispo.obra.institucion}, {self.expediente}'
+
+class dispoCertAF(models.Model):
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    certificado = models.ForeignKey(CertificadosAF, on_delete=models.CASCADE, verbose_name='Certificado')
+    dispo = models.CharField(max_length=30, verbose_name='Disposición Aprueba Certificado AF')
+    fecha = models.DateField(verbose_name='Fecha Dispo')
+    cargaCert = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Cargado por', default=1)
+    creado = models.DateTimeField(auto_now_add=True, verbose_name='Fecha y hora de creación')
+    observacion = models.TextField(verbose_name='Observación', null=True, blank=True)
+    class Meta:
+        verbose_name = 'Disposición Certificado AF'
+        verbose_name_plural = 'Disposiciones Certificados AF'
+        ordering = ['-fecha']
+    def save(self, *args, **kwargs):
+        if dispoCertAF.objects.filter(dispo=self.dispo).exclude(pk=self.pk).exists():
+            raise ValidationError('Ya existe la %s' % self.dispo)
         super().save(*args, **kwargs)
 
 class Estructuras(models.Model):
@@ -709,4 +856,34 @@ class Estructuras(models.Model):
         insp_asignado = DispoInspector.objects.filter(obra__codObra=self.obra.codObra).order_by('-fecha').first()
         if insp_asignado:
             self.inspector = insp_asignado.inspector  # Assign the actual Inspectores instance
+        super().save(*args, **kwargs)
+
+class facturasAF(models.Model):
+    tipoF = (('0','A'),('1','B'),('2','C'))
+    id = models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')
+    certificado = models.ForeignKey(CertificadosAF, on_delete=models.CASCADE, verbose_name='Certificado')
+    tipo = models.CharField(max_length=1, verbose_name='Tipo', choices=tipoF, default='1')
+    pto_venta = models.PositiveIntegerField(verbose_name='Punto de Venta N°')
+    comprobante = models.PositiveIntegerField(verbose_name='Comprobante N°')
+    fecha = models.DateField(verbose_name='Fecha Emisión')
+    cuit = models.CharField(max_length=11, verbose_name='CUIT Empresa')
+    monto = models.FloatField(verbose_name='Importe Total')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='Cargado por', default=1)
+    class Meta:
+        verbose_name = 'Factura Certificado AF'
+        verbose_name_plural = 'Facturas Certificados AF'
+        ordering = ['-fecha']
+    def __str__(self):
+        return f'{self.cuit} {self.pto_venta}-{self.comprobante}'
+    def save(self, *args, **kwargs):
+        obra = CertificadosAF.objects.filter(dispo=self.certificado.dispo)
+        cuit = obra.first().dispo.obra.empresa.cuit
+        monto = obra.first().monto
+        fecha = obra.first().dispo.fecha
+        if not cuit == self.cuit:
+            raise ValidationError(f'No coincide el CUIT de la empresa ({cuit}), con el CUIT de la Factura ({self.cuit})')
+        if not monto == self.monto:
+            raise ValidationError(f'No coincide el Monto de la Factura (${self.monto}), con el Monto de la Dispo (${monto})')
+        if not fecha <= self.fecha:
+            raise ValidationError(f'La Fecha de Emisión de la Factura ({self.fecha.day}/{self.fecha.month}/{self.fecha.year}), no puede ser anterior a la Fecha de Emisión de la Dispo ({fecha.day}/{fecha.month}/{fecha.year})')
         super().save(*args, **kwargs)

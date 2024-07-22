@@ -48,7 +48,7 @@
                 <th>Obra</th>
                 <th>Empresa</th>
                 <th>Dpto</th>
-                <th>Finaliza</th>
+                <th>Plazo</th>
                 <th>Monto en UVI</th>
                 <th>Acciones</th>
             </thead>
@@ -60,19 +60,19 @@
                     <td>{{obra.institucion.name}}</td>
                     <td>{{obra.empresa.name}}</td>
                     <td>{{obra.institucion.location.NOMDEPTO}}</td>
-                    <td>{{obra.vencimiento_contractual}}</td>
+                    <td>{{obra.plazoNro}} {% if obra.plazoTipo == '0' %}Días{% elif obra.plazoTipo == '1' %}Meses {% else %}Años{% endif %}</td>
                     <td>{{obra.monto_uvi|intcomma}}</td>
                     <td>
                         <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">
-                            {% if perms.mioc.view_obras %}
+                            <!-- {% if perms.mioc.view_obras %}
                             <a type="button" class="btn btn-outline-info" href="{% url 'obra_detalle' %}"><i class="bi bi-search"></i></a>
                             {% endif %}
                             {% if perms.mioc.view_actasobras %}
-                            <a type="button" class="btn btn-outline-info" href="{% url 'actas_obra' obra.id %}"><i class="bi bi-funnel"></i> Actas</a>
+                            <a type="button" class="btn btn-outline-info" href="#"><i class="bi bi-funnel"></i> Actas</a>
                             {% endif %}
                             {% if perms.mioc.view_certificados %}
                             <a type="button" class="btn btn-outline-info" href="{% url 'certificados_obra' obra.pk %}"><i class="bi bi-funnel"></i> Certificados</a>
-                            {% endif %}
+                            {% endif %} -->
                             {% if perms.mioc.change_obras %}
                             <a type="button" class="btn btn-outline-success" href="{% url 'editar_obra' obra.id %}"><i class="bi bi-pencil-square"></i></a>
                             {% endif %}

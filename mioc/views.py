@@ -9,8 +9,8 @@ from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 import numpy as np
-from . models import ActaMedicion, ActaMedicionValidacion, ActasInicio, ActasObras, AnticipoFinanciero, Certificados, DispoInspector, Estructuras, Memorias, Obras, EmpresaPoliza, Polizas
-from . forms import ActaInicioForm, ActaInicioFormEdit, ActaMedicionForm, ActaMedicionFormEdit, ActaMedicionValidatedForm, ActasObrasFormEdit, AntidipoFinancieroForm, AntidipoFinancieroFormEdit, CertificadoForm, CertificadoViewForm, DispoInspForm, DispoInspFormEdit, EstructuraForm, EstructuraFormEdit, MemoriaForm, ObraFormAll, ObraFormActas, EmpresaPolizaForm, ActasObrasForm, ObraFormAllEdit, PolizaForm, PolizaFormEdit
+from . models import ActaMedicion, ActaMedicionValidacion, ActasInicio, AnticipoFinanciero, Certificados, CertificadosAF, DispoInspector, DispoParalizacion, DispoReinicio, Estructuras, Memorias, Obras, EmpresaPoliza, PlanTrabajo, Polizas, dispo_plan_trabajo, dispoCertAF, facturasAF
+from . forms import ActaInicioForm, ActaInicioFormEdit, ActaMedicionForm, ActaMedicionFormEdit, ActaMedicionValidatedForm, ActaMedicionValidatedFormEdit, AntidipoFinancieroForm, AntidipoFinancieroFormEdit, CertificadoAFForm, CertificadoAFFormEdit, CertificadoForm, CertificadoViewForm, DispoCertAFForm, DispoCertAFFormEdit, DispoInspForm, DispoInspFormEdit, DispoParalizacionForm, DispoParalizacionFormEdit, DispoReinicioForm, DispoReinicioFormEdit, EstructuraForm, EstructuraFormEdit, FacturasAFForm, FacturasAFFormEdit, MemoriaForm, ObraFormAll, ObraFormActas, EmpresaPolizaForm, ObraFormAllEdit, PlanTrabajoForm, PolizaForm, PolizaFormEdit, dispo_plan_trabajo_2Form, dispo_plan_trabajoForm, dispo_plan_trabajoFormEdit
 from datetime import datetime, date
 
 from plotly.offline import plot
@@ -18,6 +18,25 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 def index(request):
+    # Obras sin plan de trabajo Inicial
+    obras_sin_plan_inicial = Obras.objects.filter(dispo_plan_trabajo__isnull=True, actasinicio__isnull=False)
+    try:
+        if len(obras_sin_plan_inicial) > 0:
+            pend_plan_inicial = len(obras_sin_plan_inicial)
+        else:
+            pend_plan_inicial = ''
+    except:
+        pend_plan_inicial = ''
+    # Planes de trabajo Iniciales a Implementar
+    obras_ids = Obras.objects.filter(actasinicio__isnull=False).values_list('codObra', flat=True)
+    plan_inicial_a_implementar = dispo_plan_trabajo.objects.filter(obra__codObra__in=obras_ids).distinct().exclude(plantrabajo__ultimo=True)
+    try:
+        if len(plan_inicial_a_implementar) > 0:
+            pend_plan_inicial_imp = len(plan_inicial_a_implementar)
+        else:
+            pend_plan_inicial_imp = ''
+    except:
+        pend_plan_inicial_imp = ''
     # Obras sin poliza msj
     obras_sin_poliza = Obras.objects.filter(polizas__isnull=True)
     try:
@@ -82,7 +101,40 @@ def index(request):
             pend_certificado = ''
     except:
         pend_certificado = ''
+    # Dispos sin certificado de anticipo financiero
+    dispo_sin_certificado_AF = AnticipoFinanciero.objects.filter(certificadosaf__isnull=True, anticipo=True)
+    try:
+        if len(dispo_sin_certificado_AF) > 0:
+            pend_AF = len(dispo_sin_certificado_AF)
+        else:
+            pend_AF = ''
+    except:
+        pend_AF = ''
+    # Certificados sin dispo de aceptación
+    certif_af_sin_dispo = CertificadosAF.objects.filter(dispocertaf__isnull=True, facturasaf__isnull=False)
+    try:
+        if len(certif_af_sin_dispo) > 0:
+            pend_dispo_AF = len(certif_af_sin_dispo)
+        else:
+            pend_dispo_AF = ''
+    except:
+        pend_dispo_AF = ''
+    # Facturas pendientes AF
+    sin_facturas_AF = CertificadosAF.objects.filter(facturasaf__isnull=True)
+    try:
+        if len(sin_facturas_AF) > 0:
+            pend_facturas_AF = len(sin_facturas_AF)
+        else:
+            pend_facturas_AF = ''
+    except:
+        pend_facturas_AF = ''
+    
+
     context = {
+        'obras_sin_plan_inicial':obras_sin_plan_inicial,
+        'pend_plan_inicial':pend_plan_inicial,
+        'plan_inicial_a_implementar':plan_inicial_a_implementar,
+        'pend_plan_inicial_imp':pend_plan_inicial_imp,
         'obras_sin_poliza':obras_sin_poliza,
         'pend_poliza':pend_poliza,
         'obras_sin_inspector':obras_sin_inspector,
@@ -97,13 +149,19 @@ def index(request):
         'actas_sin_validar':actas_sin_validar,
         'pend_acta_validar':pend_acta_validar,
         'obras_sin_certificado':obras_sin_certificado,
-        'pend_certificado':pend_certificado
+        'pend_certificado':pend_certificado,
+        'dispo_sin_certificado_AF':dispo_sin_certificado_AF,
+        'pend_AF':pend_AF,
+        'certif_af_sin_dispo':certif_af_sin_dispo,
+        'pend_dispo_AF':pend_dispo_AF,
+        'pend_facturas_AF':pend_facturas_AF,
+        'sin_facturas_AF':sin_facturas_AF,
     }
     return render(request, 'soc/index.html', context)
 
 def dashboard(request):
     ano = date.today().year
-    actas = ActasObras.objects.filter(fecha__year=ano)
+    actas = Obras.objects.filter(fecha__year=ano) # ver aqui
     try:
         paralizadas = actas.filter(tipo__name='Paralización').count() - actas.filter(tipo__name='Reinicio').count()
     except:
@@ -460,105 +518,6 @@ def ver_certificado(request, pk):
         return render(request, 'soc/certificados/certificado_ver.html', {
             'form': form,
         })
-@permission_required('mioc.view_actasobras')
-def lista_actas(request):
-    actas = ActasObras.objects.all()
-    page = request.GET.get('page',1)
-    try:
-        paginator = Paginator(actas,5)
-        actas = paginator.page(page)
-    except:
-        raise Http404
-    queryset = request.GET.get('buscar')
-    if queryset:
-        actas = ActasObras.objects.filter(
-            Q(obra__institucion__name__icontains=queryset) |
-            Q(obra__inspector__fullname__icontains=queryset) |
-            Q(nro_cert__icontains=queryset) |
-            Q(periodo__icontains=queryset),
-        ).distinct().order_by('nro_cert',)
-    return render(request, 'soc/actas/actas_lista.html', {'entity': actas, 'paginator':paginator})
-@permission_required('mioc.view_actasobras')
-def lista_actas_obra(request,obra_id):
-    actas = ActasObras.objects.filter(obra_id=obra_id).order_by('obra__institucion__name')
-    try:
-        obra = actas.values('acta__obra__institucion__name').annotate(cantidad=Sum('id'))
-        obra = list(obra)
-        obra = obra[0]['acta__obra__institucion__name'].title()
-        queryset = request.GET.get('buscar')
-        if queryset:
-            actas = actas.filter(
-                Q(obra__inspector__fullname__icontains=queryset) |
-                Q(nro_cert__icontains=queryset) |
-                Q(periodo__icontains=queryset),
-            ).distinct().order_by('nro_cert',)
-        if not actas.exists():
-            context = {
-                'obra': obra,
-                'modal': True,
-                'modal_message': 'La obra aún no tiene actas.',
-            }
-            return render(request, 'soc/actas/actas_lista_obra.html', context)
-        return render(request, 'soc/actas/actas_lista_obra.html', {
-            'actas': actas,
-            'obra': obra
-        })
-    except ValidationError as e:
-        error_message = e.messages[0]
-        return render(request, 'soc/actas/actas_lista.html', {'error': error_message})
-    except Exception as e:
-        return render(request, 'soc/actas/actas_lista.html', {'error': 'Ocurrió un error inesperado.'})
-@permission_required('mioc.add_actasobras')
-def crear_acta(request):
-    if request.method == 'GET':
-        return render(request, 'soc/actas/actas_obras.html', {
-            'form': ActasObrasForm
-        })
-    else:
-        form = ActasObrasForm(request.POST)
-        try:
-            if form.is_valid():
-                nueva_acta = form.save(commit=False)
-                nueva_acta.cargaCert = request.user
-                nueva_acta.save()
-                messages.success(request, f'Nuevo acta creada')
-                return redirect('actas')
-        except ValidationError as e:
-            # Handle the ValidationError raised by the model's clean method
-            error_message = e.messages[0]  # Get the first error message
-            return render(request, 'soc/actas/actas_obras.html', {'form': form, 'error': error_message})
-        except Exception as e:
-            # Handle any other exceptions that may occur
-            return render(request, 'soc/actas/actas_obras.html', {'form': form, 'error': 'Ocurrió un error inesperado.'})
-    return render(request, 'soc/actas/actas_obras.html')
-@permission_required('mioc.change_actasobras')
-def editar_acta(request, pk):
-    acta = get_object_or_404(ActasObras, pk=pk)
-    if request.method == 'GET':
-        form = ActasObrasFormEdit(instance=acta)
-        return render(request, 'soc/actas/actas_obras_editar.html', {
-            'form': form
-        })
-    else:
-        try:
-            acta = get_object_or_404(ActasObras, pk=pk)
-            form = ActasObrasFormEdit(request.POST, instance=acta)
-            form.save()
-            messages.success(request, f'Acta de {acta.tipo} editada!')
-            return redirect('actas')
-        except ValueError:
-            acta = get_object_or_404(ActasObras, pk=pk)
-            form = ActasObrasFormEdit(instance=acta)
-            return render(request, 'actas_obras_editar.html', {
-                'form': form,
-                'error': 'Error al editar acta'
-            })
-@permission_required('mioc.delete_actasobras')
-def borrar_acta(request, pk):
-    acta = get_object_or_404(ActasObras, pk=pk)
-    acta.delete()
-    messages.success(request, f'Acta {acta.orden} de{acta.tipo} eliminada!')
-    return redirect('actas')
 
 def crear_actas_inicio(request):
     if request.method == 'GET':
@@ -623,6 +582,69 @@ def lista_actas_inicio(request):
         ).distinct().order_by('id',)
     return render(request, 'soc/actas/actas_inicio_lista.html', {'entity': actas, 'paginator': paginator })
 
+def crear_certificado_AF(request):
+    if request.method == 'GET':
+        return render(request, 'soc/certificados/certificado_AF_crear.html', {
+            'form': CertificadoAFForm
+        })
+    else:
+        form = CertificadoAFForm(request.POST)
+        try:
+            if form.is_valid():
+                nuevo_cert = form.save(commit=False)
+                nuevo_cert.cargaCert = request.user
+                nuevo_cert.save()
+                messages.success(request, f'Nuevo certificado de Anticipo Financiero creado')
+                return redirect('certificado_AF')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'soc/certificados/certificado_AF_crear.html', {'form': form, 'error': error_message})
+        except Exception as e:
+            return render(request, 'soc/certificados/certificado_AF_crear.html', {'form': form, 'error': 'Ocurrió un error inesperado.'})
+
+def editar_certificado_AF(request, pk):
+    cert = get_object_or_404(CertificadosAF, pk=pk)
+    if request.method == 'GET':
+        form = CertificadoAFFormEdit(instance=cert)
+        return render(request, 'soc/certificados/certificado_AF_editar.html', {
+            'form': form
+        })
+    else:
+        form = CertificadoAFFormEdit(request.POST, instance=cert)
+        try:
+            if form.is_valid():
+                nuevo_cert = form.save(commit=False)
+                nuevo_cert.cargaCert = request.user
+                nuevo_cert.save()
+                messages.success(request, f'Certificado de Anticipo Financiero editado')
+                return redirect('certificado_AF')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'soc/certificados/certificado_AF_editar.html', {'form': form, 'error': error_message})
+
+def borrar_certificado_AF(request, pk):
+    cert = get_object_or_404(CertificadosAF, pk=pk)
+    cert.delete()
+    messages.success(request, f'Certificado de Anticipo Financiero eliminado')
+    return redirect('certificado_AF')
+
+def lista_certificados_AF(request):
+    cert = CertificadosAF.objects.all().order_by('-creado')
+    page = request.GET.get('page',1)
+    try:
+        paginator = Paginator(cert, 5)
+        cert = paginator.page(page)
+    except:
+        raise Http404
+    queryset = request.GET.get('buscar')
+    if queryset:
+        cert = CertificadosAF.objects.filter(
+            Q(dispo__obra__institucion__name__icontains=queryset) |
+            Q(dispo__obra__expedientes__icontains=queryset) |
+            Q(expediente__icontains=queryset) |
+            Q(cargaCert__username__icontains=queryset),
+        ).distinct().order_by('id',)
+    return render(request, 'soc/certificados/certificado_AF_lista.html', {'entity': cert, 'paginator': paginator })
 # Div Armado Expte. Pago
 @permission_required('mioc.add_memorias')
 def crear_memoria(request):
@@ -690,6 +712,67 @@ def lista_memoria(request):
             Q(obervacion__icontains=queryset),
         ).distinct().order_by('id',)
     return render(request, 'soc/memorias/memoria_lista.html', {'entity': memoria, 'paginator':paginator})
+
+def crear_factura_af(request):
+    if request.method == 'GET':
+        form = FacturasAFForm
+        return render(request, 'soc/certificados/factura_AF_crear.html', {
+            'form': form
+        })
+    else:
+        form = FacturasAFForm(request.POST)
+        try:
+            if form.is_valid():
+                cert = form.save(commit=False)
+                cert.user = request.user
+                cert.save()
+                messages.success(request, f'Factura de Anticipo Financiero registrada!')
+                return redirect('facturas_AF')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'soc/certificados/factura_AF_crear.html', {'form': form, 'error': error_message})
+    return render(request, 'soc/certificados/factura_AF_lista.html')
+
+def editar_factura_AF(request, pk):
+    cert = get_object_or_404(facturasAF, pk=pk)
+    if request.method == 'GET':
+        form = FacturasAFFormEdit(instance=cert)
+        return render(request, 'soc/certificados/factura_AF_editar.html', {
+            'form': form
+        })
+    else:
+        form = FacturasAFFormEdit(request.POST, instance=cert)
+        try:
+            form.save()
+            messages.success(request, f'Registro editado!')
+            return redirect('facturas_AF')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'soc/certificados/factura_AF_editar.html', {'form': form, 'error': error_message})
+
+def borrar_factura_AF(request, pk):
+    cert = get_object_or_404(facturasAF, pk=pk)
+    cert.delete()
+    messages.success(request, f'Factura eliminada!')
+    return redirect('facturas_AF')
+
+def lista_factura_AF(request):
+    cert = facturasAF.objects.all().order_by('-fecha')
+    page = request.GET.get('page',1)
+    try:
+        paginator = Paginator(cert, 5)
+        cert = paginator.page(page)
+    except:
+        raise Http404
+    queryset = request.GET.get('buscar')
+    if queryset:
+        cert = facturasAF.objects.filter(
+            Q(obra__institucion__name__icontains=queryset) |
+            Q(obra__inspector__fullname__icontains=queryset) |
+            Q(obra__empresa__icontains=queryset) |
+            Q(obervacion__icontains=queryset),
+        ).distinct().order_by('-fecha',)
+    return render(request, 'soc/certificados/factura_AF_lista.html', {'entity': cert})
 
 # Dpto Despacho SOC 
 @permission_required('mioc.add_obras')
@@ -826,6 +909,174 @@ def lista_anticipo(request):
             Q(obra__empresa__name__icontains=queryset),
         ).distinct().order_by('obra__institucion',)
     return render(request, 'soc/dispo/dispo_anticipo_lista.html', {'entity': anticipos, 'paginator':paginator, 'inspectores':inspectores})
+
+def crear_dispo_cert_af(request):
+    if request.method == 'GET':
+        form = DispoCertAFForm
+        return render(request, 'soc/dispo/dispo_cert_af_crear.html', {
+            'form': form
+        })
+    else:
+        form = DispoCertAFForm(request.POST)
+        try:
+            if form.is_valid():
+                dispo_cert_af = form.save(commit=False)
+                dispo_cert_af.user = request.user
+                dispo_cert_af.save()
+                messages.success(request, f'Nueva disposicion creada!')
+                return redirect('dispo_certificado_AF')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'soc/dispo/dispo_cert_af_crear.html', {'form': form, 'error': error_message})
+    return render(request, 'soc/dispo/dispo_cert_af_lista.html')
+
+def editar_dispo_cert_af(request, pk):
+    dispo_cert_af = get_object_or_404(dispoCertAF, pk=pk)
+    if request.method == 'GET':
+        form = DispoCertAFFormEdit(instance=dispo_cert_af)
+        return render(request, 'soc/dispo/dispo_cert_af_editar.html', {
+            'form': form
+        })
+    else:
+        form = DispoCertAFFormEdit(request.POST, instance=dispo_cert_af)
+        form.save()
+        messages.success(request, f'Registro editado!')
+        return redirect('dispo_certificado_AF')
+
+def borrar_dispo_cert_af(request, pk):
+    dispo_cert_af = get_object_or_404(dispoCertAF, pk=pk)
+    dispo_cert_af.delete()
+    messages.success(request, f'Registro eliminado!')
+    return redirect('dispo_certificado_AF')
+
+def lista_dispo_cert_af(request):
+    dispo_cert_af = dispoCertAF.objects.all()
+    page = request.GET.get('page',1)
+    try:
+        paginator = Paginator(dispo_cert_af,5)
+        dispo_cert_af = paginator.page(page)
+    except:
+        raise Http404
+    queryset = request.GET.get('buscar')
+    if queryset:
+        dispo_cert_af = dispoCertAF.objects.filter(
+            Q(dispo__icontains=queryset) |
+            Q(certificado__dispo__obra__institucion__name__icontains=queryset) |
+            Q(certificado__dispo__obra__empresa__name__icontains=queryset),
+        ).distinct().order_by('-fecha',)
+
+    return render(request, 'soc/dispo/dispo_cert_af_lista.html', {'entity': dispo_cert_af, 'paginator':paginator})
+
+def crear_dispo_paralizacion(request):
+    if request.method == 'GET':
+        form = DispoParalizacionForm
+        return render(request, 'soc/dispo/dispo_paral_crear.html', {
+            'form': form
+        })
+    else:
+        form = DispoParalizacionForm(request.POST)
+        try:
+            if form.is_valid():
+                dispo_paral = form.save(commit=False)
+                dispo_paral.user = request.user
+                dispo_paral.save()
+                messages.success(request, f'Nueva disposicion creada!')
+                return redirect('dispo_paral')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'soc/dispo/dispo_paral_crear.html', {'form': form, 'error': error_message})
+
+def editar_dispo_paralizacion(request, pk):
+    dispo_paral = get_object_or_404(DispoParalizacion, pk=pk)
+    if request.method == 'GET':
+        form = DispoParalizacionFormEdit(instance=dispo_paral)
+        return render(request, 'soc/dispo/dispo_paral_editar.html', {
+            'form': form
+        })
+    else:
+        form = DispoParalizacionFormEdit(request.POST, instance=dispo_paral)
+        form.save()
+        messages.success(request, f'Registro editado!')
+        return redirect('dispo_paral')
+
+def borrar_dispo_paralizacion(request, pk):
+    dispo_paral = get_object_or_404(DispoParalizacion, pk=pk)
+    dispo_paral.delete()
+    messages.success(request, f'Registro eliminado!')
+    return redirect('dispo_paral')
+
+def lista_dispo_paralizacion(request):
+    dispo_paral = DispoParalizacion.objects.all().order_by('dispo_plan__obra__institucion__name','dispo_plan__nro_plan')
+    page = request.GET.get('page',1)
+    try:
+        paginator = Paginator(dispo_paral,5)
+        dispo_paral = paginator.page(page)
+    except:
+        raise Http404
+    queryset = request.GET.get('buscar')
+    if queryset:
+        dispo_paral = DispoParalizacion.objects.filter(
+            Q(dispo__icontains=queryset) |
+            Q(certificado__dispo__obra__institucion__name__icontains=queryset) |
+            Q(certificado__dispo__obra__empresa__name__icontains=queryset),
+        ).distinct().order_by('dispo_plan__obra__institucion__name','dispo_plan__nro_plan')
+    return render(request, 'soc/dispo/dispo_paral_lista.html', {'entity': dispo_paral, 'paginator':paginator})
+
+def crear_dispo_reinicio(request):
+    if request.method == 'GET':
+        form = DispoReinicioForm
+        return render(request, 'soc/dispo/dispo_reinicio_crear.html', {
+            'form': form
+        })
+    else:
+        form = DispoReinicioForm(request.POST)
+        try:
+            if form.is_valid():
+                dispo_reinicio = form.save(commit=False)
+                dispo_reinicio.user = request.user
+                dispo_reinicio.save()
+                messages.success(request, f'Nueva disposicion creada!')
+                return redirect('dispo_reinicio')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'soc/dispo/dispo_reinicio_crear.html', {'form': form, 'error': error_message})
+
+def editar_dispo_reinicio(request, pk):
+    dispo_reinicio = get_object_or_404(DispoReinicio, pk=pk)
+    if request.method == 'GET':
+        form = DispoReinicioFormEdit(instance=dispo_reinicio)
+        return render(request, 'soc/dispo/dispo_reinicio_editar.html', {
+            'form': form
+        })
+    else:
+        form = DispoReinicioFormEdit(request.POST, instance=dispo_reinicio)
+        form.save()
+        messages.success(request, f'Registro editado!')
+        return redirect('dispo_reinicio')
+
+def borrar_dispo_reinicio(request, pk):
+    dispo_reinicio = get_object_or_404(DispoReinicio, pk=pk)
+    dispo_reinicio.delete()
+    messages.success(request, f'Registro eliminado!')
+    return redirect('dispo_reinicio')
+
+def lista_dispo_reinicio(request):
+    dispo_reinicio = DispoReinicio.objects.all().order_by('dispo_para__dispo_plan__obra__institucion__name','dispo_para__dispo_plan__nro_plan')
+    page = request.GET.get('page',1)
+    try:
+        paginator = Paginator(dispo_reinicio,5)
+        dispo_reinicio = paginator.page(page)
+    except:
+        raise Http404
+    queryset = request.GET.get('buscar')
+    if queryset:
+        dispo_reinicio = DispoReinicio.objects.filter(
+            Q(dispo__icontains=queryset) |
+            Q(certificado__dispo__obra__institucion__name__icontains=queryset) |
+            Q(certificado__dispo__obra__empresa__name__icontains=queryset),
+        ).distinct().order_by('dispo_para__dispo_plan__obra__institucion__name','dispo_para__dispo_plan__nro_plan')
+    return render(request, 'soc/dispo/dispo_reinicio_lista.html', {'entity': dispo_reinicio, 'paginator':paginator})
+
 
 # Dpto. Despacho DPO 
 @permission_required('mioc.add_dispoinspector')
@@ -1088,7 +1339,7 @@ def lista_estructura_inspector(request):
         ).distinct().order_by('id',)
     return render(request, 'soc/obras/obra_estructura_lista_inspector.html', {'entity': estructuras, 'paginator': paginator })
 
-def validar_acta(request, pk):
+def validar_acta(request):
     if request.method == 'GET':
         form = ActaMedicionValidatedForm
         return render(request, 'soc/medicion/actas_obras_validar.html', {
@@ -1099,11 +1350,251 @@ def validar_acta(request, pk):
         try:
             if form.is_valid():
                 validated = form.save(commit=False)
-                validated.acta = get_object_or_404(ActaMedicion, pk=pk)
                 validated.user = request.user
                 validated.save()
                 messages.success(request, f'Acta {validated} validada!')
-                return redirect('medicion')
+                return redirect('lista_validar_acta')
         except ValidationError as e:
             error_message = e.messages[0]
             return render(request, 'soc/medicion/actas_obras_validar.html', {'form': form, 'error': error_message})
+
+def editar_validar_acta(request, pk):
+    acta = get_object_or_404(ActaMedicionValidacion, pk=pk)
+    if request.method == 'GET':
+        form = ActaMedicionValidatedFormEdit(instance=acta)
+        return render(request, 'soc/medicion/actas_obras_validar_editar.html', {
+            'form': form
+        })
+    else:
+        form = ActaMedicionValidatedFormEdit(request.POST, instance=acta)
+        try:
+            if form.is_valid():
+                validated = form.save(commit=False)
+                validated.user = request.user
+                validated.save()
+                messages.success(request, f'Acta {validated} validada!')
+                return redirect('lista_validar_acta')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'soc/medicion/actas_obras_validar_editar.html', {'form': form, 'error': error_message})
+
+def borrar_validar_acta(request, pk):
+    acta = get_object_or_404(ActaMedicionValidacion, pk=pk)
+    acta.delete()
+    messages.success(request, f'Acta {acta} eliminada!')
+    return redirect('lista_validar_acta')
+
+def lista_validar_acta(request):
+    actas = ActaMedicionValidacion.objects.all().order_by('-acta')
+    page = request.GET.get('page',1)
+    try:
+        paginator = Paginator(actas, 5)
+        actas = paginator.page(page)
+    except:
+        raise Http404
+    queryset = request.GET.get('buscar')
+    if queryset:
+        actas = ActaMedicionValidacion.objects.filter(
+            Q(obra__institucion__name__icontains=queryset) |
+            Q(obra__empresa__name__icontains=queryset) |
+            Q(obra__expedientes__icontains=queryset) |
+            Q(link__icontains=queryset) |
+            Q(fecha__icontains=queryset) |
+            Q(user__username__icontains=queryset),
+        ).distinct().order_by('acta',)
+    return render(request, 'soc/medicion/actas_obras_validar_lista.html', {'entity': actas })
+
+def crear_dispo_plan_trabajo(request):
+    if request.method == 'GET':
+        form = dispo_plan_trabajoForm
+        return render(request, 'soc/obras/dispo_plan_trabajo_crear.html', {
+            'form': form
+        })
+    else:
+        form = dispo_plan_trabajoForm(request.POST)
+        try:
+            if form.is_valid():
+                plan = form.save(commit=False)
+                plan.user = request.user
+                plan.save()
+                messages.success(request, f'Plan de trabajo creado!')
+                return redirect('lista_dispo_plan_trabajo')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'soc/obras/dispo_plan_trabajo_crear.html', {'form': form, 'error': error_message})
+
+def crear_dispo_plan_trabajo_2(request):
+    if request.method == 'GET':
+        form = dispo_plan_trabajo_2Form
+        return render(request, 'soc/obras/dispo_plan_trabajo_crear_2.html', {
+            'form': form
+        })
+    else:
+        form = dispo_plan_trabajo_2Form(request.POST)
+        try:
+            if form.is_valid():
+                plan = form.save(commit=False)
+                plan.user = request.user
+                plan.save()
+                messages.success(request, f'Plan de trabajo creado!')
+                return redirect('lista_dispo_plan_trabajo_2')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'soc/obras/dispo_plan_trabajo_crear_2.html', {'form': form, 'error': error_message})
+        
+def editar_dispo_plan_trabajo(request, pk):
+    plan = get_object_or_404(dispo_plan_trabajo, pk=pk)
+    if request.method == 'GET':
+        form = dispo_plan_trabajoFormEdit(instance=plan)
+        return render(request, 'soc/obras/dispo_plan_trabajo_editar.html', {
+            'form': form
+        })
+    else:
+        form = dispo_plan_trabajoFormEdit(request.POST, instance=plan)
+        try:
+            if form.is_valid():
+                plan = form.save(commit=False)
+                plan.user = request.user
+                plan.save()
+                messages.success(request, f'Plan de trabajo editado!')
+                return redirect('lista_dispo_plan_trabajo')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'soc/obras/dispo_plan_trabajo_editar.html', {'form': form, 'error': error_message})
+
+def editar_dispo_plan_trabajo_2(request, pk):
+    plan = get_object_or_404(dispo_plan_trabajo, pk=pk)
+    if request.method == 'GET':
+        form = dispo_plan_trabajoFormEdit(instance=plan)
+        return render(request, 'soc/obras/dispo_plan_trabajo_editar_2.html', {
+            'form': form
+        })
+    else:
+        form = dispo_plan_trabajoFormEdit(request.POST, instance=plan)
+        try:
+            if form.is_valid():
+                plan = form.save(commit=False)
+                plan.user = request.user
+                plan.save()
+                messages.success(request, f'Plan de trabajo editado!')
+                return redirect('lista_dispo_plan_trabajo_2')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'soc/obras/dispo_plan_trabajo_editar_2.html', {'form': form, 'error': error_message})
+
+def borrar_dispo_plan_trabajo(request, pk):
+    plan = get_object_or_404(dispo_plan_trabajo, pk=pk)
+    plan.delete()
+    messages.success(request, f'Plan de trabajo eliminado!')
+    return redirect('lista_dispo_plan_trabajo')
+
+def borrar_dispo_plan_trabajo_2(request, pk):
+    plan = get_object_or_404(dispo_plan_trabajo, pk=pk)
+    plan.delete()
+    messages.success(request, f'Plan de trabajo eliminado!')
+    return redirect('lista_dispo_plan_trabajo_2')
+
+def lista_dispo_plan_trabajo(request):
+    plans = dispo_plan_trabajo.objects.filter(tipo='0').order_by('-obra')
+    page = request.GET.get('page',1)
+    try:
+        paginator = Paginator(plans, 5)
+        plans = paginator.page(page)
+    except:
+        raise Http404
+    queryset = request.GET.get('buscar')
+    if queryset:
+        plans = dispo_plan_trabajo.objects.filter(
+            Q(obra__institucion__name__icontains=queryset) |
+            Q(obra__empresa__name__icontains=queryset) |
+            Q(obra__expedientes__icontains=queryset) |
+            Q(instrumento__icontains=queryset) |
+            Q(fecha_aplicacion__icontains=queryset) |
+            Q(user__username__icontains=queryset),
+        ).distinct().order_by('obra',)
+    return render(request, 'soc/obras/dispo_plan_trabajo_lista.html', {'entity': plans })
+
+def lista_dispo_plan_trabajo_2(request):
+    plans = dispo_plan_trabajo.objects.filter(tipo='1').order_by('obra','nro_plan')
+    page = request.GET.get('page',1)
+    try:
+        paginator = Paginator(plans, 5)
+        plans = paginator.page(page)
+    except:
+        raise Http404
+    queryset = request.GET.get('buscar')
+    if queryset:
+        plans = dispo_plan_trabajo.objects.filter(
+            Q(obra__institucion__name__icontains=queryset) |
+            Q(obra__empresa__name__icontains=queryset) |
+            Q(obra__expedientes__icontains=queryset) |
+            Q(instrumento__icontains=queryset) |
+            Q(fecha_aplicacion__icontains=queryset) |
+            Q(user__username__icontains=queryset),
+        ).distinct().order_by('obra','nro_plan')
+    return render(request, 'soc/obras/dispo_plan_trabajo_lista_2.html', {'entity': plans })
+
+def crear_plan_trabajo(request):
+    if request.method == 'GET':
+        form = PlanTrabajoForm()
+        return render(request, 'soc/obras/plan_trabajo_crear.html', {
+            'form': form
+        })
+    else:
+        form = PlanTrabajoForm(request.POST)
+        try:
+            if form.is_valid():
+                plan = form.save(commit=False)
+                plan.user = request.user
+                plan.save()
+                messages.success(request, f'Plan de trabajo creado!')
+                return redirect('lista_plan_trabajo')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'soc/obras/plan_trabajo_crear.html', {'form': form, 'error': error_message})
+
+def editar_plan_trabajo(request, pk):
+    plan = get_object_or_404(PlanTrabajo, pk=pk)
+    if request.method == 'GET':
+        form = PlanTrabajoForm(instance=plan)
+        return render(request, 'soc/obras/plan_trabajo_editar.html', {
+            'form': form
+        })
+    else:
+        form = PlanTrabajoForm(request.POST, instance=plan)
+        try:
+            if form.is_valid():
+                plan = form.save(commit=False)
+                plan.user = request.user
+                plan.save()
+                messages.success(request, f'Plan de trabajo editado!')
+                return redirect('lista_plan_trabajo')
+        except ValidationError as e:
+            error_message = e.messages[0]
+            return render(request, 'soc/obras/plan_trabajo_editar.html', {'form': form, 'error': error_message})
+
+def borrar_plan_trabajo(request, pk):
+    plan = get_object_or_404(PlanTrabajo, pk=pk)
+    plan.delete()
+    messages.success(request, f'Plan de trabajo eliminado!')
+    return redirect('lista_plan_trabajo')
+
+def lista_plan_trabajo(request):
+    plans = PlanTrabajo.objects.all().order_by('dispo_plan','periodoNro')
+    page = request.GET.get('page',1)
+    try:
+        paginator = Paginator(plans, 5)
+        plans = paginator.page(page)
+    except:
+        raise Http404
+    queryset = request.GET.get('buscar')
+    if queryset:
+        plans = dispo_plan_trabajo.objects.filter(
+            Q(obra__institucion__name__icontains=queryset) |
+            Q(obra__empresa__name__icontains=queryset) |
+            Q(obra__expedientes__icontains=queryset) |
+            Q(instrumento__icontains=queryset) |
+            Q(fecha_aplicacion__icontains=queryset) |
+            Q(user__username__icontains=queryset),
+        ).distinct().order_by('dispo_plan','periodoNro')
+    return render(request, 'soc/obras/plan_trabajo_lista.html', {'entity': plans })

@@ -1,9 +1,9 @@
 {% extends 'layouts/base.html' %}
 {% block content %}
-{% block title %}Estructuras {% endblock %}
+{% block title %}Planes de Trabajo por Periodo Esperado{% endblock %}
 {% load humanize %}
 <main class="container py-5">
-    <h1 class="display-5 text-center fw-medium">Estructuras de Certificación</h1>
+    <h1 class="display-5 text-center fw-medium">Planes de Trabajo por Periodo Esperado</h1>
     <br>
     {% if error %}
     <div class="alert alert-warning alert-dismissible fade show" role="alert">
@@ -32,7 +32,7 @@
             </div>
             {% if perms.mioc.add_obras %}
             <div class="col-1">
-                <a href="{% url 'nueva_estructura' %}" type="" class="btn btn-outline-secondary">
+                <a href="{% url 'nuevo_plan_trabajo' %}" type="" class="btn btn-outline-secondary">
                     <i class="bi bi-plus-lg"></i>
                 </a>
             </div>
@@ -44,32 +44,33 @@
     <div class="table-responsive" >
         <table class="table table-hover">
             <thead class="table-success">
-                <th>Cod. Obra</th>
+                <th>Instrumento</th>
                 <th>Obra</th>
                 <th>Empresa</th>
-                <th>Dpto</th>
-                <th>Finaliza</th>
-                <th>Monto en UVI</th>
+                <th>Nro Periodo</th>
+                <th>Fecha de medición</th>
+                <th>UVIS esperados</th>
+                <th>UVIS Acum. esperados</th>
                 <th>Acciones</th>
             </thead>
             <tbody>
                 {% for x in entity %}
                 <tr>
                     </td>
-                    <td class="fw-semibold">{{x.obra.codObra}}</td>
-                    <td>{{x.obra.institucion.name}}</td>
-                    <td>{{x.obra.empresa.name}}</td>
-                    <td>{{x.obra.institucion.location.NOMDEPTO}}</td>
-                    <td>{{x.obra.vencimiento_contractual}}</td>
-                    <td>{{x.obra.monto_uvi|intcomma}}</td>
+                    <td class="fw-semibold">{{x.dispo_plan.instrumento}}</td>
+                    <td>{{x.dispo_plan.obra.institucion.name}}</td>
+                    <td>{{x.dispo_plan.obra.empresa.name}}</td>
+                    <td>{{x.periodoNro}}</td>
+                    <td>{{x.fechaPeriodo}}</td>
+                    <td>{{x.uvisEsperados}}</td>
+                    <td>{{x.uvisAcumEsperados}}</td>
                     <td>
                         <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">
-                            <a type="button" class="btn btn-outline-primary" href={{x.link}} target="_blank"><i class="bi bi-box-arrow-up-right"></i></a>
                             {% if perms.mioc.change_obras %}
-                            <a type="button" class="btn btn-outline-success" href="{% url 'editar_estructura' x.id %}"><i class="bi bi-pencil-square"></i></a>
+                            <a type="button" class="btn btn-outline-success" href="{% url 'editar_plan_trabajo' x.id %}"><i class="bi bi-pencil-square"></i></a>
                             {% endif %}
                             {% if perms.mioc.delete_obras %}
-                            <a type="button" class="btn btn-outline-danger" href="{% url 'eliminar_estructura' x.id %}"><i class="bi bi-trash3"></i></a>
+                            <a type="button" class="btn btn-outline-danger" href="{% url 'borrar_plan_trabajo' x.id %}"><i class="bi bi-trash3"></i></a>
                             {% endif %}
                         </div>
                     </td>

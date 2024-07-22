@@ -1,6 +1,8 @@
 {% extends 'layouts/base.html' %}
+
 {% block content %}
-{% block title %}Actas de Inicio{% endblock %}
+{% block title %}Certificados de Anticipo Financiero{% endblock %}
+{% load humanize %}
 <script>
     function myFunction() {
         Swal.fire({
@@ -23,7 +25,7 @@
     }
 </script>
 <main class="container py-5">
-    <h1 class="display-5 text-center fw-medium">Actas de Inicio</h1>
+    <h1 class="display-5 text-center fw-medium">Certificados de Anticipo Financiero</h1>
     <br>
     <div class="container">
         <div class="row">
@@ -45,7 +47,7 @@
             </div>
             {% if perms.mioc.add_certificados %}
             <div class="col-1">
-                <a href="{% url 'nuevo_inicio' %}" type="" class="btn btn-outline-secondary">
+                <a href="{% url 'nuevo_certificado_AF' %}" type="" class="btn btn-outline-secondary">
                     <i class="bi bi-plus-lg"></i>
                 </a>
             </div>
@@ -56,35 +58,37 @@
     <div class="table-responsive">
         <table class="table table-hover">
             <thead class="table-success">
-                <th>#</th>
-                <th>Cod Obra</th>
+                <th>Expte. Cert. AF</th>
                 <th>Obra</th>
-                <th>Fecha de inicio</th>
-                <th>Plazo</th>
-                <th>Vencimiento Contractual</th>
-                <th>Registró</th>
+                <th>Anticipo</th>
+                <th>Monto en pesos</th>
+                <th>Monto en UVIs</th>
+                <th>Creado</th>
+                <th>Modificado</th>
                 <th>Acciones</th>
             </thead>
             <tbody>
-                {% for actas in entity %}
+                {% for certificado in entity %}
                 <tr>
-                    <td class="fw-semibold">{{ forloop.counter }}</td>
-                    <td >{{ actas.obra.codObra }}</td>
-                    <td>{{ actas.obra.institucion.name }}</td>
-                    <td>{{ actas.fecha|date:"d F Y" }}</td>
-                    <td>{{ actas.obra.plazoNro }} {% if actas.obra.plazoTipo == '0' %}Días{% elif actas.obra.plazoTipo == '1' %}Meses {% else %}Años{% endif %}</td>
-                    <td>{{ actas.vencimiento_contractual|date:"d F Y" }}</td>
-                    <td>{{ actas.user }}</td>
+                    <td class="fw-semibold">{{ certificado.expediente }}</td>
+                    <td>{{ certificado.dispo.obra.institucion.name }}</td>
+                    <td>{{ certificado.dispo.porcentaje }} %</td>
+                    <td>${{ certificado.monto|intcomma }}</td>
+                    <td>{{ certificado.uvi|intcomma }}</td>
+                    <td>{{ certificado.cargaCert }} el {{ certificado.creado }}</td>
+                    <td>{% if certificado.ultimo_editor == None %}❌{% else %} {{ certificado.ultimo_editor }} el {{ certificado.ultima_modificacion }} {% endif %}</td>
                     <td>
                         <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">
                             <a type="button" class="btn btn-outline-info" href="#"><i class="bi bi-search"></i></a>
+                            <a type="button" class="btn btn-outline-info"
+                                href="#"><i class="bi bi-funnel"></i></a>
                             {% if perms.mioc.change_certificados %}
                             <a type="button" class="btn btn-outline-success"
-                                href="{% url 'editar_inicio' actas.pk %}"><i class="bi bi-pencil-square"></i></a>
+                                href="{% url 'editar_certificado_AF' certificado.id %}"><i class="bi bi-pencil-square"></i></a>
                             {% endif %}
                             {% if perms.mioc.delete_certificados %}
                             <a type="button" class="btn btn-outline-danger"
-                                href="{% url 'eliminar_inicio' actas.pk %}"><i class="bi bi-trash3"></i></a>
+                                href="{% url 'eliminar_certificado_AF' certificado.id %}"><i class="bi bi-trash3"></i></a>
                             {% endif %}
                         </div>
                     </td>

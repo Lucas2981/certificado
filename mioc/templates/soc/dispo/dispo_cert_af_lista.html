@@ -1,0 +1,78 @@
+{% extends 'layouts/base.html' %}
+{% block content %}
+{% block title %}Disposiciones Aprobando AF{% endblock %}
+{% load static %}
+{% load humanize %}
+<main class="container py-5">
+    <h3 class="display-5 text-center fw-medium">Disposiciones Aprobando AF</h3>
+    <br>
+    <div class="container">
+        <div class="row flex-fill">
+            <div class="col-md-11 search">
+                <form method="get">
+                    <div id="custom-search-input">
+                        <div class="input-group col-md-12">
+                            <input type="text" class="form-control" placeholder="Ingrese palabras claves..." name="buscar"
+                                value="{{ request.GET.buscar }}">
+                            <span class="input-group-list">
+                                <i class="icon icon-search"></i>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-search"></i> Buscar
+                                </button>
+                            </span>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+            {% if perms.mioc.add_dispoinspector %}
+            <div class="col-1">
+                <a href="{% url 'nueva_dispo_certificado_AF' %}" type="" class="btn btn-outline-secondary">
+                    <i class="bi bi-plus-lg"></i>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    <hr size="5" color="grey" noshade>
+    </class>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-success">
+                <th>Expte AF</th>
+                <th>Obra</th>
+                <th>Anticipo</th>
+                <th>Monto en pesos</th>
+                <th>Monto en UVIs</th>
+                <th>Fecha</th>
+                <th>Registró</th>
+                <th>Acciones</th>
+            </thead>
+            <tbody>
+                {% for x in entity %}
+                <tr></td>
+                    <td class="fw-semibold">{{x.certificado.expediente}}</td>
+                    <td>{{x.certificado.dispo.obra.institucion.name}}</td>
+                    <td>{{x.certificado.dispo.porcentaje}} %</td>
+                    <td>${{x.certificado.monto|intcomma}}</td>
+                    <td>{{x.certificado.uvi|intcomma}}</td>
+                    <td>{{x.fecha}}</td>
+                    <td>{{x.cargaCert}}</td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group" aria-label="Basic mixed styles example">
+                            {% if perms.mioc.change_dispoinspector %}
+                            <a type="button" class="btn btn-outline-success" href="{% url 'editar_dispo_certificado_AF' x.id %}"><i class="bi bi-pencil-square"></i></a>
+                            {% endif %}
+                            {% if perms.mioc.delete_dispoinspector %}
+                            <a type="button" class="btn btn-outline-danger" href="{% url 'eliminar_dispo_certificado_AF' x.id %}"><i class="bi bi-trash3"></i></a>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include 'layouts/paginator.html' %}
+</main>
+{% endblock %}

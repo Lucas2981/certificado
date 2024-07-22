@@ -1,0 +1,24 @@
+{% extends 'layouts/base.html' %}
+{% block content %}
+{% block title %}Nueva Dispo Certificado AF{% endblock %}
+{% load crispy_forms_tags %}
+<main class="container">
+    <div class="row">
+        <div class="col-lg-4 offset-lg-4 mt-5">
+            <form method="POST" class="card card-body">
+                <h1><i class="bi bi-file-earmark-plus"></i> Nueva Dispo Certificado AF</h1>
+                {% if error %}
+                <div class="alert alert-danger" role="alert">
+                    {{error}}
+                </div>
+                {% endif %}
+                {% csrf_token %}
+                {{form|crispy }}
+                <button class="btn btn-primary">
+                    Guardar
+                </button>
+            </form>
+        </div>
+    </div>
+</main>
+{% endblock %}

@@ -11,9 +11,10 @@
     {% endif %}
     {% include 'soc/pendientes/list_task_poliza.html' %}
     {% include 'soc/pendientes/list_task_dispo_inpector.html' %}
-    {% include 'soc/pendientes/list_task_div_certificaciones.html' %}
     {% include 'soc/pendientes/list_task_anticipo.html' %}
     {% include 'soc/pendientes/list_task_dpto_certificaciones.html' %}
+    {% include 'soc/pendientes/list_task_div_certificaciones.html' %}
+    {% include 'soc/pendientes/list_task_div_carga_certificados.html' %}
     <br><hr>
     <!-- fin de tareas pendientes -->
 
@@ -43,7 +44,7 @@
                 </div>
             </div>
         </div>
-        <div class="col">
+        <!-- <div class="col">
             <div class="card h-100">
                 <div class="card-body d-flex justify-content-center align-items-center"
                     style="background-color: #cded3d;">
@@ -54,19 +55,7 @@
                     <a href="{% url 'obras' %}" class="stretched-link"></a>
                 </div>
             </div>
-        </div>
-        <div class="col">
-            <div class="card h-100">
-                <div class="card-body d-flex justify-content-center align-items-center"
-                    style="background-color: #0c90b1;">
-                    <i class="bi bi-file-earmark-bar-graph" style="font-size: 4rem; color: #ffffff;"></i>
-                </div>
-                <div class="card-body" style="background-color: #ffffff;">
-                    <h4 class="card-title text-center">Certificados AO</h4>
-                    <a href="{% url 'certificados' %}" class="stretched-link"></a>
-                </div>
-            </div>
-        </div>
+        </div> -->
         <div class="col">
             <div class="card h-100">
                 <div class="card-body d-flex justify-content-center align-items-center"
@@ -94,12 +83,72 @@
         <div class="col">
             <div class="card h-100">
                 <div class="card-body d-flex justify-content-center align-items-center"
+                    style="background-color: #7ed42e;">
+                    <i class="bi bi-reception-2" style="font-size: 4rem; color: #ffffff;"></i>
+                </div>
+                <div class="card-body" style="background-color: #ffffff;">
+                    <h4 class="card-title text-center">Planes de Trabajo Iniciales</h4>
+                    <a href="{% url 'lista_dispo_plan_trabajo' %}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body d-flex justify-content-center align-items-center"
+                    style="background-color: #56a30d;">
+                    <i class="bi bi-reception-3" style="font-size: 4rem; color: #ffffff;"></i>
+                </div>
+                <div class="card-body" style="background-color: #ffffff;">
+                    <h4 class="card-title text-center">Planes de Trabajo Optimizados</h4>
+                    <a href="{% url 'lista_dispo_plan_trabajo_2' %}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body d-flex justify-content-center align-items-center"
+                    style="background-color: #0d35a3;">
+                    <i class="bi bi-bar-chart-steps" style="font-size: 4rem; color: #ffffff;"></i>
+                </div>
+                <div class="card-body" style="background-color: #ffffff;">
+                    <h4 class="card-title text-center">Estructuras de Planes de Trabajo</h4>
+                    <a href="{% url 'lista_plan_trabajo' %}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body d-flex justify-content-center align-items-center"
                     style="background-color: #8322bb;">
                     <i class="bi bi-file-play" style="font-size: 4rem; color: #ffffff;"></i>
                 </div>
                 <div class="card-body" style="background-color: #ffffff;">
                     <h4 class="card-title text-center">Actas de Inicio</h4>
                     <a href="{% url 'inicio' %}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body d-flex justify-content-center align-items-center"
+                    style="background-color: #bb3422;">
+                    <i class="bi bi-pause-circle" style="font-size: 4rem; color: #ffffff;"></i>
+                </div>
+                <div class="card-body" style="background-color: #ffffff;">
+                    <h4 class="card-title text-center">Paralizaciones</h4>
+                    <a href="{% url 'dispo_paral' %}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body d-flex justify-content-center align-items-center"
+                    style="background-color: #22bb50;">
+                    <i class="bi bi-play-circle" style="font-size: 4rem; color: #ffffff;"></i>
+                </div>
+                <div class="card-body" style="background-color: #ffffff;">
+                    <h4 class="card-title text-center">Reinicios</h4>
+                    <a href="{% url 'dispo_reinicio' %}" class="stretched-link"></a>
                 </div>
             </div>
         </div>
@@ -119,11 +168,71 @@
             <div class="card h-100">
                 <div class="card-body d-flex justify-content-center align-items-center"
                     style="background-color: #be3658;">
-                    <i class="bi bi-file-earmark-diff" style="font-size: 4rem; color: #ffffff;"></i>
+                    <i class="bi bi-file-arrow-up" style="font-size: 4rem; color: #ffffff;"></i>
                 </div>
                 <div class="card-body" style="background-color: #ffffff;">
                     <h4 class="card-title text-center">Certificados AF</h4>
-                    <a href="{% url 'anticipo' %}" class="stretched-link"></a>
+                    <a href="{% url 'certificado_AF' %}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body d-flex justify-content-center align-items-center"
+                    style="background-color: #13b464;">
+                    <i class="bi bi-tag" style="font-size: 4rem; color: #ffffff;"></i>
+                </div>
+                <div class="card-body" style="background-color: #ffffff;">
+                    <h4 class="card-title text-center">Facturas CAF</h4>
+                    <a href="{% url 'facturas_AF' %}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body d-flex justify-content-center align-items-center"
+                    style="background-color: #ac2a6b;">
+                    <i class="bi bi-file-check" style="font-size: 4rem; color: #ffffff;"></i>
+                </div>
+                <div class="card-body" style="background-color: #ffffff;">
+                    <h4 class="card-title text-center">Dispo Certificados AF</h4>
+                    <a href="{% url 'dispo_certificado_AF' %}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body d-flex justify-content-center align-items-center"
+                    style="background-color: #3c7ca7;">
+                    <i class="bi bi-file-earmark-break" style="font-size: 4rem; color: #ffffff;"></i>
+                </div>
+                <div class="card-body" style="background-color: #ffffff;">
+                    <h4 class="card-title text-center">Actas de Medición</h4>
+                    <a href="{% url 'medicion' %}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body d-flex justify-content-center align-items-center"
+                    style="background-color: #d84450;">
+                    <i class="bi bi-file-earmark-check" style="font-size: 4rem; color: #ffffff;"></i>
+                </div>
+                <div class="card-body" style="background-color: #ffffff;">
+                    <h4 class="card-title text-center">Validación de CAO</h4>
+                    <a href="{% url 'lista_validar_acta' %}" class="stretched-link"></a>
+                </div>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100">
+                <div class="card-body d-flex justify-content-center align-items-center"
+                    style="background-color: #0c90b1;">
+                    <i class="bi bi-file-earmark-bar-graph" style="font-size: 4rem; color: #ffffff;"></i>
+                </div>
+                <div class="card-body" style="background-color: #ffffff;">
+                    <h4 class="card-title text-center">Certificados AO</h4>
+                    <a href="{% url 'certificados' %}" class="stretched-link"></a>
                 </div>
             </div>
         </div>
@@ -148,18 +257,6 @@
                 <div class="card-body" style="background-color: #ffffff;">
                     <h4 class="card-title text-center">Estructuras {{user.username|upper}}</h4>
                     <a href="{% url 'estructuras_inspector' %}" class="stretched-link"></a>
-                </div>
-            </div>
-        </div>
-        <div class="col">
-            <div class="card h-100">
-                <div class="card-body d-flex justify-content-center align-items-center"
-                    style="background-color: #3c7ca7;">
-                    <i class="bi bi-file-earmark-break" style="font-size: 4rem; color: #ffffff;"></i>
-                </div>
-                <div class="card-body" style="background-color: #ffffff;">
-                    <h4 class="card-title text-center">Actas de Medición</h4>
-                    <a href="{% url 'medicion' %}" class="stretched-link"></a>
                 </div>
             </div>
         </div>

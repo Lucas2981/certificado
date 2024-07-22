@@ -1,7 +1,7 @@
 from import_export import resources
 from import_export.admin import ImportExportModelAdmin
 from django.contrib import admin
-from .models import (ActaMedicion, ActaTipo, ActasInicio, ActasObras, AnticipoFinanciero, Certificados, DispoInspector, Empresas, Location,Clases,Instituciones, Memorias, Polizas,Titulos,Inspectores,Obras,Rubros,
+from .models import (ActaMedicion,ActasInicio, AnticipoFinanciero, Certificados, DispoInspector, Empresas, Location,Clases,Instituciones, Memorias, Polizas,Titulos,Inspectores,Obras,Rubros,
                     Subrubros,Presupuestos,PresupuestosSubrubros,Uvis,Unidades,EmpresaPoliza)
 
 # Register your models here.
@@ -58,7 +58,7 @@ class EmpresaAdmin(admin.ModelAdmin):
 admin.site.register(Empresas,EmpresaAdmin)
 
 class ObrasAdmin(admin.ModelAdmin):
-    list_display = ('codObra','institucion','inicio','plazo','vencimiento_contractual','uvi')
+    list_display = ('codObra','institucion','plazoNro','plazoTipo','uvi')
     search_fields = ('institucion',)
     autocomplete_fields = ['institucion']
     list_filter = ('institucion__name',)
@@ -117,18 +117,8 @@ class EmpresaPolizaAdmin(admin.ModelAdmin):
 admin.site.register(EmpresaPoliza,EmpresaPolizaAdmin)
 
 class CertificadoAdmin(admin.ModelAdmin):
-    list_display = ('id','acta','uvi','ultima_modificacion')
+    list_display = ('id','acta','ultima_modificacion')
 admin.site.register(Certificados,CertificadoAdmin)
-
-class ActaTipoAdmin(admin.ModelAdmin):
-    list_display = ('name',)
-    search_fields = ('name',)
-    ordering = ['name']
-admin.site.register(ActaTipo,ActaTipoAdmin)
-
-class ActaObrasAdmin(admin.ModelAdmin):
-    list_display = ('codActa','obra','tipo','fecha','dispo')
-admin.site.register(ActasObras,ActaObrasAdmin)
 
 class PolizaAdmin(admin.ModelAdmin):
     list_display = ('codPol','obra','empresa_poliza')
